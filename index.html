@@ -1,0 +1,3405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>技能树 · CrossFit Gymnastics</title>
+<style>
+:root{
+  --bg:#0C0F14;
+  --surface:#151A22;
+  --surface2:#1C232E;
+  --surface3:#242D3A;
+  --line:#222B37;
+  --text:#E8EDF2;
+  --dim:#8B95A3;
+  --faint:#5A6470;
+  --green:#50E3A4;
+  --green-deep:#1E5C43;
+  --blue:#6CA8FF;
+  --amber:#F5B14C;
+  --rose:#F2697A;
+  --violet:#B08CFF;
+  --mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sans:-apple-system,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  min-height:100vh;padding-bottom:96px;
+  background-image:radial-gradient(ellipse 80% 40% at 50% -10%, rgba(80,227,164,.06), transparent);
+}
+.app{max-width:560px;margin:0 auto;padding:20px 16px 0}
+
+/* ====== 顶部 ====== */
+.masthead{display:flex;align-items:baseline;justify-content:space-between;margin:8px 2px 18px}
+h1{font-size:34px;font-weight:900;letter-spacing:1px}
+.masthead .en{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:2px;text-transform:uppercase}
+
+/* ====== 视图切换 ====== */
+.viewtabs{display:flex;background:var(--surface);border-radius:99px;padding:4px;margin-bottom:16px;border:1px solid var(--line)}
+.viewtabs button{
+  flex:1;border:none;background:transparent;color:var(--dim);font-size:15px;font-weight:600;
+  padding:10px 0;border-radius:99px;cursor:pointer;font-family:var(--sans);transition:all .25s;
+}
+.viewtabs button.on{background:var(--surface3);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+
+/* ====== 过滤器 ====== */
+.filters{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.chiprow::-webkit-scrollbar{display:none}
+.chip{
+  flex-shrink:0;display:inline-flex;align-items:center;gap:6px;
+  background:var(--surface);border:1px solid var(--line);color:var(--dim);
+  border-radius:99px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:var(--sans);white-space:nowrap;
+}
+.chip .n{font-family:var(--mono);font-size:12px}
+.chip.on{background:var(--green);border-color:var(--green);color:#06281A}
+.chip.on .dot,.chip.on .n{color:#06281A}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* ====== 分类卡片 ====== */
+.catcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);margin-bottom:14px;overflow:hidden}
+.cathead{display:flex;align-items:center;gap:14px;padding:18px 18px 14px;cursor:pointer;user-select:none}
+.catring{position:relative;width:52px;height:52px;flex-shrink:0}
+.catring svg{transform:rotate(-90deg)}
+.catring .icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.catinfo{flex:1;min-width:0}
+.catinfo .zh{font-size:19px;font-weight:800}
+.catinfo .en{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.catcount{font-family:var(--mono);font-size:14px;color:var(--dim)}
+.caret{color:var(--faint);transition:transform .3s;margin-left:6px}
+.catcard.closed .caret{transform:rotate(-90deg)}
+.catbody{transition:none}
+.catcard.closed .catbody{display:none}
+
+/* ====== 子类分组 ====== */
+.subhead{
+  display:flex;align-items:center;gap:8px;padding:12px 18px 6px;
+  font-size:13px;font-weight:700;color:var(--dim);
+}
+.subhead .n{font-family:var(--mono);color:var(--faint);font-weight:400}
+
+/* ====== 动作行 ====== */
+.move{
+  display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;
+  border-top:1px solid var(--line);transition:background .15s;
+}
+.move:active{background:var(--surface2)}
+.statusbtn{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;border:2px solid var(--faint);
+  background:transparent;display:flex;align-items:center;justify-content:center;
+  font-size:15px;transition:all .25s;position:relative;
+}
+.statusbtn.mastered{background:var(--green);border-color:var(--green);color:#06281A}
+.statusbtn.learning{background:transparent;border-color:var(--blue);color:var(--blue)}
+.statusbtn.want{border-color:var(--amber);color:var(--amber)}
+.movemain{flex:1;min-width:0}
+.moveline1{display:flex;align-items:center;gap:8px}
+.lvl{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;letter-spacing:.5px}
+.lvl.L1{background:rgba(80,227,164,.15);color:var(--green)}
+.lvl.L2{background:rgba(108,168,255,.15);color:var(--blue)}
+.lvl.L3{background:rgba(245,177,76,.15);color:var(--amber)}
+.lvl.L4{background:rgba(242,105,122,.18);color:var(--rose)}
+.movezh{font-size:16px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.moveen{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.movemeta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.logcount{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.move .arrow{color:var(--faint);font-size:18px}
+
+/* ====== 进阶路径视图 ====== */
+.pathcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);margin-bottom:16px;padding:20px 18px}
+.pathtitle{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.pathtitle .zh{font-size:18px;font-weight:800}
+.pathtitle .pct{font-family:var(--mono);font-size:13px;color:var(--green)}
+.pathdesc{font-size:13px;color:var(--dim);margin-bottom:18px;line-height:1.6}
+.chain{position:relative;padding-left:8px}
+.chainnode{display:flex;align-items:center;gap:14px;position:relative;padding:10px 0;cursor:pointer}
+.chainnode .rail{
+  position:absolute;left:14px;top:-50%;height:100%;width:3px;background:var(--line);z-index:0;border-radius:2px;
+}
+.chainnode:first-child .rail{display:none}
+.chainnode .rail.done{background:var(--green)}
+.nodedot{
+  width:30px;height:30px;border-radius:50%;background:var(--surface);border:2.5px solid var(--faint);
+  z-index:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:all .3s;
+}
+.nodedot.mastered{background:var(--green);border-color:var(--green);color:#06281A;box-shadow:0 0 14px rgba(80,227,164,.4)}
+.nodedot.learning{border-color:var(--blue);color:var(--blue);box-shadow:0 0 12px rgba(108,168,255,.3)}
+.nodedot.next{border-color:var(--amber);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,177,76,.35)}50%{box-shadow:0 0 0 8px rgba(245,177,76,0)}}
+.nodetext .zh{font-size:15px;font-weight:700}
+.nodetext .en{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:2px}
+.nodetag{margin-left:auto;font-size:11px;font-family:var(--mono);color:var(--faint)}
+.nodetag.next{color:var(--amber)}
+
+/* ====== 详情抽屉 ====== */
+.sheetmask{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:50;opacity:0;pointer-events:none;transition:opacity .3s}
+.sheetmask.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:51;max-width:560px;margin:0 auto;
+  background:var(--surface);border-radius:24px 24px 0 0;border:1px solid var(--line);border-bottom:none;
+  max-height:88vh;overflow-y:auto;transform:translateY(105%);transition:transform .35s cubic-bezier(.3,1,.3,1);
+  overscroll-behavior:contain;
+}
+.sheet.show{transform:translateY(0)}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--faint);margin:12px auto 0;opacity:.5}
+.sheetinner{padding:18px 22px 40px}
+.sheethead{margin-bottom:6px}
+.sheethead .toprow{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.sheethead h2{font-size:24px;font-weight:900}
+.sheethead .en{font-family:var(--mono);font-size:13px;color:var(--faint);letter-spacing:1px}
+.statusrow{display:flex;gap:8px;margin:18px 0 6px}
+.statusrow button{
+  flex:1;border:1.5px solid var(--line);background:var(--surface2);color:var(--dim);
+  border-radius:var(--r-sm);padding:11px 0;font-size:14px;font-weight:700;cursor:pointer;
+  font-family:var(--sans);transition:all .2s;
+}
+.statusrow button.on-want{border-color:var(--amber);color:var(--amber);background:rgba(245,177,76,.1)}
+.statusrow button.on-learning{border-color:var(--blue);color:var(--blue);background:rgba(108,168,255,.1)}
+.statusrow button.on-mastered{border-color:var(--green);color:#06281A;background:var(--green)}
+
+/* 教材区块 */
+.tut{margin-top:20px}
+.tutsec{margin-bottom:20px}
+.tutsec h3{
+  display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;margin-bottom:10px;
+  color:var(--text);
+}
+.tutsec h3 .bar{width:4px;height:15px;border-radius:2px;background:var(--green)}
+.tutsec h3 .bar.b{background:var(--blue)} .tutsec h3 .bar.a{background:var(--amber)}
+.tutsec h3 .bar.r{background:var(--rose)} .tutsec h3 .bar.v{background:var(--violet)}
+.tutsec p{font-size:14px;line-height:1.85;color:#C3CBD6}
+.steps{counter-reset:s;display:flex;flex-direction:column;gap:10px}
+.steps li{
+  list-style:none;counter-increment:s;display:flex;gap:12px;font-size:14px;line-height:1.75;color:#C3CBD6;
+}
+.steps li::before{
+  content:counter(s);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green);
+  width:24px;height:24px;border:1.5px solid var(--green-deep);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+  background:rgba(80,227,164,.08);
+}
+.cues{display:flex;flex-direction:column;gap:8px}
+.cues li{list-style:none;display:flex;gap:10px;font-size:14px;line-height:1.7;color:#C3CBD6}
+.cues li::before{content:"·";color:var(--blue);font-weight:900;font-size:20px;line-height:1.2}
+.faults li::before{content:"×";color:var(--rose);font-weight:900;font-size:15px;line-height:1.6}
+.stdbox{
+  background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:14px 16px;font-size:14px;line-height:1.8;color:#C3CBD6;
+}
+.stdbox b{color:var(--green)}
+
+/* 打卡记录 */
+.logsec{margin-top:26px;border-top:1px dashed var(--line);padding-top:20px}
+.logsec h3{font-size:15px;font-weight:800;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.logsec h3 .n{font-family:var(--mono);font-size:12px;color:var(--faint);font-weight:400}
+.logform{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.logform textarea{
+  background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);
+  color:var(--text);font-family:var(--sans);font-size:14px;padding:11px 13px;resize:none;height:64px;
+  outline:none;line-height:1.6;
+}
+.logform textarea:focus{border-color:var(--green-deep)}
+.feelrow{display:flex;gap:8px}
+.feelrow button{
+  flex:1;background:var(--surface2);border:1.5px solid var(--line);color:var(--dim);border-radius:var(--r-sm);
+  padding:9px 0;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;
+}
+.feelrow button.on{border-color:var(--green);color:var(--green);background:rgba(80,227,164,.08)}
+.logsave{
+  background:var(--green);border:none;color:#06281A;font-weight:800;font-size:15px;
+  border-radius:var(--r-sm);padding:12px 0;cursor:pointer;font-family:var(--sans);transition:transform .1s;
+}
+.logsave:active{transform:scale(.98)}
+.logitem{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:13px}
+.logitem .d{font-family:var(--mono);color:var(--faint);flex-shrink:0;font-size:12px;padding-top:1px}
+.logitem .t{color:#C3CBD6;line-height:1.6;flex:1}
+.logitem .f{flex-shrink:0;font-size:12px}
+.logdel{background:none;border:none;color:var(--faint);cursor:pointer;font-size:14px;padding:0 2px}
+
+/* ====== 记录视图 ====== */
+.daycard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:12px;padding:16px 18px}
+.daycard .d{font-family:var(--mono);font-size:13px;color:var(--green);margin-bottom:10px;font-weight:700}
+.daycard .ent{display:flex;gap:10px;font-size:14px;line-height:1.7;color:#C3CBD6;padding:4px 0}
+.daycard .ent b{color:var(--text);flex-shrink:0}
+
+/* ====== 我的视图 ====== */
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.statbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:18px}
+.statbox .v{font-family:var(--mono);font-size:30px;font-weight:700}
+.statbox .k{font-size:13px;color:var(--dim);margin-top:4px}
+.statbox.g .v{color:var(--green)} .statbox.b .v{color:var(--blue)}
+.statbox.a .v{color:var(--amber)} .statbox.p .v{color:var(--violet)}
+.badgegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.badge{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:16px 10px;text-align:center;transition:all .3s;
+}
+.badge .ic{font-size:26px;filter:grayscale(1);opacity:.3;transition:all .4s}
+.badge .nm{font-size:12px;font-weight:700;margin-top:8px;color:var(--faint)}
+.badge .cond{font-size:10px;color:var(--faint);margin-top:3px;font-family:var(--mono)}
+.badge.unlocked{border-color:var(--green-deep);background:linear-gradient(180deg,rgba(80,227,164,.07),var(--surface))}
+.badge.unlocked .ic{filter:none;opacity:1}
+.badge.unlocked .nm{color:var(--text)}
+.databtns{display:flex;gap:10px;margin-top:18px}
+.databtns button{
+  flex:1;background:var(--surface);border:1px solid var(--line);color:var(--dim);
+  border-radius:var(--r-sm);padding:12px 0;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);
+}
+.sectionlabel{font-size:14px;font-weight:800;margin:22px 4px 12px;color:var(--text)}
+
+/* ====== 底部导航 ====== */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;
+  background:rgba(18,23,30,.92);backdrop-filter:blur(16px);border-top:1px solid var(--line);
+}
+.tabbar .inner{max-width:560px;margin:0 auto;display:flex;padding:8px 0 calc(10px + env(safe-area-inset-bottom))}
+.tabbar button{
+  flex:1;background:none;border:none;color:var(--faint);font-size:11px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-family:var(--sans);padding:4px 0;
+}
+.tabbar button .ic{font-size:21px;transition:transform .2s}
+.tabbar button.on{color:var(--green)}
+.tabbar button.on .ic{transform:translateY(-2px)}
+
+/* ====== 庆祝动效 ====== */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.cp{position:absolute;width:9px;height:9px;border-radius:2px;animation:fall 1.5s ease-out forwards}
+@keyframes fall{
+  0%{transform:translate(0,0) rotate(0);opacity:1}
+  100%{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}
+}
+.toast{
+  position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);
+  background:var(--green);color:#06281A;font-weight:800;font-size:15px;
+  padding:13px 26px;border-radius:99px;z-index:100;transition:transform .4s cubic-bezier(.3,1.4,.5,1);
+  box-shadow:0 8px 30px rgba(80,227,164,.35);white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty{text-align:center;color:var(--faint);font-size:14px;padding:50px 0;line-height:2}
+.empty .big{font-size:36px}
+
+/* ====== 扩展:动作演示动画 ====== */
+.illus{
+  background:linear-gradient(180deg,var(--surface2),var(--surface));
+  border:1px solid var(--line);border-radius:var(--r-md);
+  padding:10px 12px 6px;margin:16px 0 4px;
+}
+.illus svg{width:100%;height:auto;display:block;max-height:210px}
+.ifl{fill:none;stroke:var(--text);stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+.ifh{fill:var(--surface);stroke:var(--text);stroke-width:3.2}
+.ifg{fill:var(--green)}
+.ip{stroke:#39424F;stroke-width:3;stroke-linecap:round}
+.ipb{stroke:#4A5562;stroke-width:4.5;stroke-linecap:round}
+.ipr{fill:none;stroke:#4A5562;stroke-width:3}
+.ipf{fill:#2A3340}
+.ghost .ifl,.ghost .ifh{stroke:var(--faint);opacity:.22}
+.ghost .ifh{fill:none}
+.illuscap{
+  text-align:center;font-size:12px;color:var(--dim);padding:6px 0 4px;
+}
+.illuscap .ab{font-family:var(--mono);font-size:10px;color:var(--faint);margin-left:6px;letter-spacing:1px}
+
+/* ====== 扩展:WOD ====== */
+.wodinput{
+  background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);
+  color:var(--text);font-family:var(--sans);font-size:14px;padding:11px 13px;outline:none;width:100%;
+}
+.wodinput:focus{border-color:var(--green-deep)}
+.wodpre{
+  white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12.5px;line-height:1.8;
+  color:#C3CBD6;background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:12px 14px;margin:10px 0;
+}
+.wodbtn{
+  width:100%;background:var(--green);border:none;color:#06281A;font-weight:800;font-size:14px;
+  border-radius:var(--r-sm);padding:12px 0;cursor:pointer;font-family:var(--sans);margin-top:8px;
+}
+.wodbtn:disabled{opacity:.6}
+.ghostbtn{background:var(--surface2);color:var(--dim);border:1px solid var(--line);font-weight:600}
+.photobar{display:flex;gap:10px}
+.photobar label{padding:10px 0;font-size:13px;cursor:pointer;border-radius:var(--r-sm)}
+.wodimg{
+  width:86px;height:86px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--line);
+  cursor:zoom-in;display:block;margin-top:8px;transition:all .25s;
+}
+.wodimg.zoomed{width:100%;height:auto;cursor:zoom-out}
+.glossbox,.zhbox{
+  background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:12px 14px;margin:10px 0;
+}
+.glosstitle{font-size:12px;font-weight:800;color:var(--blue);margin-bottom:8px;letter-spacing:.5px}
+.glossrow{display:flex;gap:10px;font-size:12.5px;line-height:1.9}
+.glossrow b{font-family:var(--mono);color:var(--text);flex-shrink:0;min-width:92px;font-size:12px}
+.glossrow span{color:var(--dim)}
+
+
+.ifp{fill:rgba(80,227,164,.07);stroke:#4A5562;stroke-width:3}
+.ifp2{fill:#5A6470}
+.ghost .ifp{opacity:.18}
+
+.ifk{fill:#39424F;stroke:#5A6470;stroke-width:2.5}
+.ifb{fill:rgba(108,168,255,.15);stroke:#6CA8FF;stroke-width:2.5}
+.ghost .ifk,.ghost .ifb{opacity:.18}
+
+/* 扩展5:哑铃 + UX */
+.ifd{fill:#39424F;stroke:#5A6470;stroke-width:2}
+.ghost .ifd{opacity:.18}
+.overall{margin:2px 2px 14px}
+.ovtext{display:flex;align-items:baseline;gap:6px;font-size:13px;color:var(--dim);margin-bottom:7px}
+.ovtext b{font-family:var(--mono);font-size:18px;color:var(--green)}
+.ovpct{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint)}
+.ovbar{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden}
+.ovfill{height:100%;border-radius:3px;background:var(--green);transition:width .6s cubic-bezier(.3,1,.3,1)}
+.searchwrap{position:relative;display:flex;align-items:center}
+.searchwrap .sicon{position:absolute;left:14px;color:var(--faint);font-size:16px;pointer-events:none}
+.searchwrap input{
+  width:100%;background:var(--surface);border:1px solid var(--line);border-radius:99px;
+  color:var(--text);font-family:var(--sans);font-size:14px;padding:11px 40px 11px 38px;outline:none;
+}
+.searchwrap input:focus{border-color:var(--green-deep)}
+.sclear{position:absolute;right:8px;width:26px;height:26px;border-radius:50%;border:none;
+  background:var(--surface3);color:var(--dim);cursor:pointer;font-size:12px}
+.sheethead{position:relative}
+.sheetclose{
+  position:absolute;top:0;right:0;width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);background:var(--surface2);color:var(--dim);
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.statbox .vu{font-size:13px;color:var(--faint);margin-left:3px;font-family:var(--sans)}
+.storagebar{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px}
+.storagebar .srow{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:8px}
+.storagebar .mono{font-family:var(--mono)}
+.swarn{font-size:11px;color:var(--amber);margin-top:8px}
+
+/* 扩展6:动画引擎 v4 */
+.iftrail{fill:none;stroke:var(--green);stroke-width:2;opacity:.45;stroke-linecap:round;stroke-linejoin:round}
+.illusctl{display:flex;align-items:center;gap:8px;padding:6px 2px 2px}
+.illusctl button{
+  background:var(--surface3);border:1px solid var(--line);color:var(--dim);
+  border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--mono);
+  min-width:34px;transition:all .15s;
+}
+.illusctl button.on{border-color:var(--green-deep);color:var(--green);background:rgba(80,227,164,.08)}
+.illusctl .phase{
+  margin-left:auto;font-size:12px;color:var(--green);font-weight:700;
+  text-align:right;min-height:16px;transition:opacity .2s;
+}
+
+/* ====== 扩展7:桌面端布局 ====== */
+.sidenav{display:none}
+.pathgrid{display:block}
+
+@media (min-width:900px){
+  /* --- 布局骨架 --- */
+  html,body{overflow-x:hidden}
+  body{padding-bottom:40px}
+  .tabbar{display:none}
+  .app{max-width:1560px;margin:0;margin-left:264px;padding:36px 52px 60px}
+  .sidenav{
+    display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:248px;z-index:30;
+    background:linear-gradient(180deg,#10141B,#0C0F14);border-right:1px solid var(--line);
+    padding:26px 18px 20px;gap:8px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;padding:0 8px 18px;border-bottom:1px solid var(--line)}
+  .blogo{
+    width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,rgba(80,227,164,.2),rgba(108,168,255,.12));
+    border:1px solid var(--green-deep);font-size:20px;
+  }
+  .bzh{font-size:18px;font-weight:900;letter-spacing:1px}
+  .ben{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+  .sidenav-nav{display:flex;flex-direction:column;gap:4px;padding:14px 0}
+  .sidenav-nav button{
+    display:flex;align-items:center;gap:12px;background:none;border:none;color:var(--dim);
+    font-size:14.5px;font-weight:600;font-family:var(--sans);padding:11px 14px;border-radius:10px;
+    cursor:pointer;text-align:left;transition:all .15s;
+  }
+  .sidenav-nav button span{font-size:17px}
+  .sidenav-nav button:hover{background:var(--surface2);color:var(--text)}
+  .sidenav-nav button.on{background:rgba(80,227,164,.1);color:var(--green)}
+  .sideprog{
+    margin-top:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;
+  }
+  .sp-row{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:8px}
+  .sp-row .mono{font-family:var(--mono);color:var(--green)}
+  .sp-stats{display:flex;justify-content:space-between;margin-top:12px}
+  .sp-stats div{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .sp-stats b{font-family:var(--mono);font-size:16px;color:var(--text)}
+  .sp-stats span{font-size:10px;color:var(--faint)}
+  .sidefoot{font-size:10px;color:var(--faint);text-align:center;padding-top:14px;font-family:var(--mono)}
+
+  /* --- 顶部与筛选 --- */
+  h1{font-size:30px}
+  .viewtabs{max-width:340px}
+  .searchwrap{max-width:520px}
+  .chip{cursor:pointer}
+  .chip:hover:not(.on){border-color:var(--faint);color:var(--text)}
+
+  /* --- 动作网格 --- */
+  .catbody{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:4px 18px 18px}
+  .subhead{grid-column:1/-1;padding:10px 2px 2px}
+  .catbody .empty{grid-column:1/-1}
+  .move{
+    border:1px solid var(--line);border-radius:14px;background:var(--surface2);
+    padding:14px 16px;transition:all .15s;
+  }
+  .move:hover{background:var(--surface3);border-color:var(--green-deep);transform:translateY(-1px)}
+  .statusbtn{cursor:pointer}
+  .statusbtn:hover{transform:scale(1.12)}
+
+  /* --- 路径双列 --- */
+  .pathgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:8px}
+  .pathgrid .pathcard{margin-bottom:0}
+  .chainnode{border-radius:10px;padding:10px 8px}
+  .chainnode:hover{background:var(--surface2)}
+
+  /* --- 详情:底部抽屉 → 居中双栏弹窗 --- */
+  .sheet{
+    left:50%;right:auto;top:50%;bottom:auto;
+    width:min(1040px,92vw);max-width:none;margin:0;
+    max-height:88vh;
+    border-radius:22px;border:1px solid var(--line);
+    transform:translate(-50%,-48%) scale(.97);opacity:0;pointer-events:none;
+    transition:transform .25s cubic-bezier(.3,1,.4,1),opacity .25s;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+  }
+  .sheet.show{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+  .grab{display:none}
+  .sheetinner{
+    display:grid;grid-template-columns:minmax(340px,400px) minmax(0,1fr);column-gap:36px;
+    grid-template-areas:"head head" "illusa tut" "statusa tut" "loga tut";
+    grid-template-rows:auto auto auto 1fr;
+    padding:28px 36px 36px;
+  }
+  .sheethead{grid-area:head;margin-bottom:14px}
+  .sheetinner .illus,.sheetinner>div>.illus{grid-area:illusa;margin:0 0 14px}
+  .statusrow{grid-area:statusa;margin:0 0 10px}
+  .tut{grid-area:tut;margin-top:0}
+  .logsec{grid-area:loga;margin-top:10px;border-top:1px dashed var(--line);padding-top:16px}
+  .sheethead h2{font-size:28px}
+
+  /* --- 记录页双栏 --- */
+  body[data-tab="log"] #viewroot{
+    display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;
+  }
+  body[data-tab="log"] #viewroot .sectionlabel{grid-column:1/-1;margin-bottom:0}
+  body[data-tab="log"] #viewroot .pathcard,
+  body[data-tab="log"] #viewroot .daycard{margin-bottom:0}
+  body[data-tab="log"] #viewroot .empty{grid-column:1/-1}
+
+  /* --- 我的页 --- */
+  .statgrid{grid-template-columns:repeat(3,1fr)}
+  .badgegrid{grid-template-columns:repeat(6,1fr)}
+
+  /* --- 滚动条 --- */
+  .sheet::-webkit-scrollbar{width:10px}
+  .sheet::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:5px;border:2px solid var(--surface)}
+  ::-webkit-scrollbar{width:12px}
+  ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:6px;border:3px solid var(--bg)}
+  ::-webkit-scrollbar-track{background:transparent}
+}
+@media (min-width:1280px){
+  .catbody{grid-template-columns:repeat(3,1fr)}
+}
+@media (min-width:1440px){
+  .pathgrid{grid-template-columns:repeat(3,1fr)}
+  body[data-tab="log"] #viewroot{grid-template-columns:repeat(3,1fr)}
+  .statgrid{grid-template-columns:repeat(6,1fr)}
+}
+
+
+/* 扩展8:GitHub 登录与同步 */
+.loginmask{
+  position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:rgba(8,10,14,.88);backdrop-filter:blur(8px);padding:20px;
+}
+.logincard{
+  width:min(440px,94vw);background:var(--surface);border:1px solid var(--line);border-radius:22px;
+  padding:34px 30px 26px;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6);
+}
+.loginlogo{
+  width:60px;height:60px;margin:0 auto 14px;border-radius:18px;display:flex;align-items:center;justify-content:center;
+  font-size:28px;background:linear-gradient(135deg,rgba(80,227,164,.22),rgba(108,168,255,.14));
+  border:1px solid var(--green-deep);
+}
+.logincard h2{font-size:22px;font-weight:900}
+.logincard h2 span{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-weight:400}
+.logindesc{font-size:13px;color:var(--dim);line-height:1.8;margin:14px 0 18px}
+.logindesc b{color:var(--green)}
+.loginform{display:flex;flex-direction:column;gap:10px;text-align:left}
+.loginform input[type=text],.loginform input[type=password],.loginform input:not([type]){
+  background:var(--surface2);border:1px solid var(--line);border-radius:10px;
+  color:var(--text);font-family:var(--sans);font-size:14px;padding:12px 14px;outline:none;width:100%;
+}
+.loginform input:focus{border-color:var(--green-deep)}
+.loginck{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);padding:2px 2px}
+.loginck input{accent-color:var(--green)}
+.loginskip{background:none;border:none;color:var(--faint);font-size:13px;cursor:pointer;padding:8px;font-family:var(--sans)}
+.loginskip:hover{color:var(--dim)}
+.loginhint{font-size:11px;color:var(--faint);line-height:1.7;text-align:center;padding-top:4px}
+.syncchipwrap{text-align:center;padding:8px 0 2px}
+.syncchip{font-family:var(--mono);font-size:11px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="masthead">
+    <h1 id="pagetitle">技能树</h1>
+    <span class="en">Skill Tree</span>
+  </div>
+  <div id="viewroot"></div>
+</div>
+
+<div class="tabbar"><div class="inner">
+  <button data-tab="tree" class="on"><span class="ic">🌳</span>技能树</button>
+  <button data-tab="log"><span class="ic">📒</span>记录</button>
+  <button data-tab="me"><span class="ic">🏅</span>我的</button>
+</div></div>
+
+<div class="sheetmask" id="sheetmask"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div class="sheetinner" id="sheetinner"></div></div>
+<div class="toast" id="toast"></div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+// ================= 动作数据库 =================
+// status: none / want / learning / mastered
+const CATEGORIES = [
+  {id:"gym", zh:"体操", en:"Gymnastics", icon:"🤸"},
+];
+const SUBCATS = ["拉类","推类","倒立类","核心与保持"];
+const LEVELS = {L1:"入门",L2:"基础",L3:"进阶",L4:"高阶"};
+
+const MOVES = [
+// ---------------- 拉类 ----------------
+{id:"dead-hang",cat:"gym",sub:"拉类",lvl:"L1",zh:"死悬",en:"Dead Hang",
+ goal:"建立握力、肩部和肘部结缔组织的基础承重能力,是一切悬垂类动作的地基。",
+ steps:["正握单杠,双手与肩同宽或略宽,拇指环绕握(full grip)。","双脚离地,身体完全放松下沉,肩胛骨自然上提,耳朵贴近上臂。","保持呼吸均匀,不要憋气,目视前方。","下杠时双脚先落地缓冲,不要直接松手摔落。"],
+ cues:["全程拇指锁握,不要虚握(suicide grip)","身体放松但不松垮,核心微收防止过度晃动","肩部允许被动拉长,这正是训练目的"],
+ faults:["耸肩发力对抗重力——死悬就是要被动悬挂","握距过宽导致肩部不适","时间未到就频繁换握或扭动身体"],
+ std:"单次悬挂 <b>60 秒</b> 不落地,即可解锁下一步。进阶者目标 90–120 秒。",
+ next:"达标后进入「主动悬挂」,学习用肩胛下沉控制身体。"},
+
+{id:"active-hang",cat:"gym",sub:"拉类",lvl:"L1",zh:"主动悬挂",en:"Active Hang",
+ goal:"学会在悬挂中下沉并锁定肩胛骨,建立肩部主动稳定能力,是引体向上发力的起点。",
+ steps:["从死悬姿势开始,保持手肘伸直。","想象「把肩膀塞进口袋」,肩胛骨向下、向后沉,耳朵与肩膀之间拉出空间。","胸腔微微上提,身体形成轻微的空心体(hollow)张力。","保持 10–20 秒后还原到死悬,感受两种状态的区别。"],
+ cues:["手肘始终伸直——弯肘就变成了引体","肋骨下收,不要塌腰挺肚子","下沉的是肩胛,不是低头缩脖子"],
+ faults:["用弯曲手肘代替肩胛下沉","耸肩状态误以为是主动悬挂","身体大幅摆动失去张力"],
+ std:"主动悬挂稳定保持 <b>30 秒</b>,且能连续完成 10 次「死悬↔主动悬挂」切换(肩胛引体)。",
+ next:"进入「肩胛引体」强化,再开始严格引体向上的离心阶段训练。"},
+
+{id:"ring-row",cat:"gym",sub:"拉类",lvl:"L1",zh:"吊环划船",en:"Ring Row",
+ goal:"用可调节角度的水平拉建立背阔肌、菱形肌和二头肌力量,是严格引体最重要的辅助动作。",
+ steps:["双手抓环,身体后倾呈直线,脚跟着地,环带越垂直难度越高。","起始位手臂伸直,肩胛微收,全身像一块平板。","拉动身体使双环触碰胸口两侧,手肘贴近身体后拉。","顶端停顿 1 秒,挤压肩胛,然后用 2–3 秒缓慢还原。"],
+ cues:["身体是一条直线:夹臀、收腹、头中立","先收肩胛再弯手肘,顺序不能反","调整脚的位置改变难度——脚越靠前越难"],
+ faults:["臀部下垂或上顶,身体变成香蕉形","顶端拉不到位,手肘只弯到 90°","用甩腰的惯性代替背部发力"],
+ std:"身体接近水平角度时完成 <b>3 组 × 12 次</b> 标准划船,触胸且 2 秒离心。",
+ next:"配合「主动悬挂」达标后,开始严格引体向上的弹力带辅助训练。"},
+
+{id:"pull-over",cat:"gym",sub:"拉类",lvl:"L2",zh:"拉过杠",en:"Pull-over",
+ goal:"综合拉力、核心折叠与杠上转换能力,培养「绕杠旋转」的本体感觉,为双力臂打基础。",
+ steps:["主动悬挂起始,拉杠的同时膝盖收向胸口,身体后倒。","髋部持续上送,让腹部贴近杠面,双腿越过杠的上方。","身体绕杠旋转,转到杠上支撑位(front support),手腕翻转压在杠上。","控制还原:身体前倾绕杠向下,缓慢回到悬挂。"],
+ cues:["拉杠+收腹+后倒三个动作同时启动","眼睛看脚尖帮助身体后翻","转到杠上后立即伸直手臂锁定支撑"],
+ faults:["只用手臂拉,髋部没有上送,卡在半空","头向后仰导致旋转轴偏移","落杠时腹部砸杠——应该是贴着滚上去"],
+ std:"无助力连续完成 <b>3 次</b> 流畅拉过杠,上杠后能稳定支撑 3 秒。",
+ next:"杠上支撑感建立后,可以开始接触双力臂的过渡(transition)分解练习。"},
+
+{id:"strict-pullup",cat:"gym",sub:"拉类",lvl:"L2",zh:"严格引体向上",en:"Strict Pull-up",
+ goal:"上肢拉力的金标准。建立真实的垂直拉力量,是所有 kipping 动作的安全前提——先有力量,再加摆动。",
+ steps:["主动悬挂起始,肩胛先下沉锁定。","手肘向髋部方向拉,带动身体垂直上升,想象「把杠拉向胸口」。","下巴明确高于杠面(标准)或锁骨触杠(更高标准)。","用 2 秒控制下放,回到手肘完全伸直的悬挂位,每一次都从直臂开始。"],
+ cues:["启动顺序:肩胛下沉 → 手肘后拉 → 下巴过杠","全程保持轻微空心体,脚尖并拢绷直","想着「手肘插口袋」而不是「下巴够杠」"],
+ faults:["半程引体:底部手肘不伸直,顶部下巴不过杠","蹬腿、甩髋借力(那是 kipping,不是 strict)","脖子拼命前伸够杠,肩颈代偿"],
+ std:"男性 <b>5 次</b> / 女性 <b>3 次</b> 全程严格引体为达标线;CrossFit 训练建议达到男 10 / 女 5 再系统学习 kipping。",
+ next:"达标后兵分两路:学习「Kipping 引体」提高竞技效率,或加负重继续发展绝对力量。"},
+
+{id:"kipping-pullup",cat:"gym",sub:"拉类",lvl:"L3",zh:"Kipping 引体向上",en:"Kipping Pull-up",
+ goal:"利用全身摆动(kip)将水平动能转化为垂直位移,在 WOD 中以更低的局部疲劳完成大量引体。前提:严格引体已达标。",
+ steps:["先掌握杠下摆荡(beat swing):在「弓形 arch」与「空心 hollow」之间流畅切换,肩膀主导,不是踢腿。","在 hollow 前摆的瞬间,向下压杠并送髋,身体借势上升。","髋部驱动 + 手臂快速拉,下巴过杠。","推杠让身体后离,顺势回到 arch 位,直接衔接下一次摆荡。"],
+ cues:["摆荡来自肩部推拉杠,腿只是跟随","「踢-拉-推」三拍节奏,推杠下放是衔接下一个的关键","身体始终保持张力,松散的摆动既低效又伤肩"],
+ faults:["没有严格引体力量就练 kipping——肩部受伤高发原因","摆荡幅度失控,节奏断裂每次都要重新起摆","顶端不推杠,垂直掉落导致肩部受冲击"],
+ std:"连续 <b>10 次</b> 不间断、节奏一致的 kipping 引体,组间身体不落杠。",
+ next:"节奏稳定后学习「蝶式引体」,或横向发展「胸触杠引体」。"},
+
+{id:"butterfly-pullup",cat:"gym",sub:"拉类",lvl:"L3",zh:"蝶式引体向上",en:"Butterfly Pull-up",
+ goal:"竞技级最高效的引体形态:身体走圆形轨迹无停顿循环,比 kipping 更快,但对节奏与肩部控制要求极高。",
+ steps:["从 kipping 的基础上改变轨迹:下巴过杠后身体不向后推,而是继续向前、向下画圆。","下落时双腿后摆进入 arch,几乎无停顿地衔接下一次上拉。","身体像在杠子周围画一个连续的椭圆,头和肩在杠前杠后交替。","用小幅度、高频率的循环维持节奏,呼吸跟随节拍。"],
+ cues:["先用单次「kipping 上 + 蝶式轨迹下」练习过渡","目光固定一点,帮助维持节奏","越累越要保持轨迹圆滑,变形就主动断组"],
+ faults:["轨迹变成上下直线,失去圆形动能","下落阶段完全放松,肩部被动受力","为追求速度牺牲下巴过杠的有效次数"],
+ std:"连续 <b>15 次</b> 蝶式引体,全程节奏均匀无断点,下巴每次明确过杠。",
+ next:"蝶式稳定后可挑战「蝶式胸触杠」,这是通往高水平竞技的标配。"},
+
+{id:"c2b",cat:"gym",sub:"拉类",lvl:"L3",zh:"胸触杠引体",en:"Chest-to-Bar Pull-up",
+ goal:"引体的更大动作幅度版本:锁骨以下胸部触杠。需要更强的拉力与更激进的髋部驱动,是 RX+ 与竞技 WOD 常客。",
+ steps:["技术与 kipping 引体一致,但髋部驱动更猛、拉得更高。","上拉末端手肘向身体两侧后方撕拉,胸腔主动上送迎向杠。","锁骨或胸上沿明确接触杠面。","推离幅度也更大,为下一次蓄力留出空间。"],
+ cues:["想着「把杠拉到胸口」而非「身体够杠」","触杠瞬间身体略后仰,胸打开","握距可比普通引体略宽,缩短行程"],
+ faults:["用下巴过杠的高度敷衍,实际没触胸","拉到顶端时手肘外飘,肩部失稳","摆荡过大导致触杠位置忽高忽低"],
+ std:"连续 <b>7 次</b> kipping 胸触杠,每次都有清晰的触杠声/触感。",
+ next:"C2B 是「杠上双力臂」最直接的前置——拉得足够高,转换才有空间。"},
+
+{id:"bar-mu",cat:"gym",sub:"拉类",lvl:"L4",zh:"杠上双力臂",en:"Bar Muscle-up",
+ goal:"从杠下悬挂一次性翻越到杠上支撑,是拉力、爆发与转换技术的集大成者,CrossFit 高阶里程碑动作。",
+ steps:["大幅度摆荡,在 hollow 前摆末端爆发性拉杠+送髋,身体贴杠上升。","拉到最高点(腰腹接近杠)的瞬间,头和肩膀快速「翻越」到杠上方——这就是转换(transition)。","手腕翻转压杠,从拉变推,撑直手臂到支撑位。","控制下放:屈臂、身体后落、绕杠回到悬挂,衔接下一次。"],
+ cues:["「拉得高」比「转得快」更重要,先解决高度","转换瞬间想着「把杠压到髋部以下」","肘部贴身,转换时手肘快速从杠下转到杠上"],
+ faults:["拉的高度不足,卡在杠前用下巴够——俗称「chicken wing」单边翻越,极易伤肩","摆荡后没有收紧,能量泄漏","转换时双肘外张,推不起来"],
+ std:"无弹力带、无垫脚,完成 <b>1 次</b> 干净的杠上双力臂即达成;进阶目标连续 5 次。",
+ next:"恭喜进入高阶俱乐部。下一座山:吊环双力臂(更不稳定、转换更精细)。"},
+
+{id:"ring-mu",cat:"gym",sub:"拉类",lvl:"L4",zh:"吊环双力臂",en:"Ring Muscle-up",
+ goal:"体操拉类的王冠:在不稳定的吊环上完成悬垂到支撑的转换。需要假握、深拉与精确的转换时机。",
+ steps:["假握(false grip)抓环:手腕压在环上,掌根过环,这是转换不脱手的关键。","摆荡后爆发深拉,把环拉到胸口以下,双环贴近身体。","转换:头与胸前穿过双环之间,手肘从身体前方转到后方,进入深屈臂支撑(deep dip)。","从深屈臂推起到完全支撑,环转外(turn out)锁定。"],
+ cues:["假握会痛,先在低环划船里习惯它","拉到「环碰胸」才有资格转换,拉一半必失败","转换时双环始终贴紧身体,离身即失控"],
+ faults:["没有假握或假握丢失,转换时手腕卡死","双环分开,身体从中间漏下去","转换后深 dip 推不起——说明吊环臂屈伸力量不足,回去补课"],
+ std:"无助力完成 <b>1 次</b> 严格或 kipping 吊环双力臂;严格版本(strict MU)是更高荣誉。",
+ next:"已到达拉类技能树顶端。可以打磨严格双力臂、L-sit 双力臂等花式变体。"},
+
+];
+
+const MOVES2 = [
+// ---------------- 推类 ----------------
+{id:"pushup",cat:"gym",sub:"推类",lvl:"L1",zh:"俯卧撑",en:"Push-up",
+ goal:"水平推的基石,同时是「移动中的平板支撑」——胸肩三头力量与全身张力的双重训练。",
+ steps:["双手略宽于肩,手指张开抓地,身体从头到脚跟一条直线。","手肘与躯干约呈 45°(箭头形,不是 T 形)下放。","胸口轻触地面或离地一拳,全程核心绷紧。","完整推起到手肘伸直,顶端肩胛微微前伸(protract)。"],
+ cues:["想象「把地板推离自己」","臀部和腹部同时收紧,腰不塌、臀不翘","下放 2 秒,推起 1 秒,建立控制"],
+ faults:["半程:胸不触底或顶端不锁直","头先着地的「啄米式」","手肘大开 90° 外展,肩前侧压力剧增"],
+ std:"男性 <b>20 次</b> / 女性 <b>12 次</b> 标准全程,身体直线无变形。",
+ next:"达标后兵分两路:「双杠臂屈伸」发展垂直推,「Pike 俯卧撑」走向倒立推。"},
+
+{id:"pike-pushup",cat:"gym",sub:"推类",lvl:"L2",zh:"Pike 俯卧撑",en:"Pike Push-up",
+ goal:"把水平推改造成垂直推:屈髋让肩部承担更多体重,是通往倒立俯卧撑的桥梁动作。",
+ steps:["俯卧撑起始,然后髋部高高顶起,身体呈倒 V 形,脚跟尽量压低。","目光看向双脚之间,头顶朝地面方向下放。","头顶轻触地面(或瑜伽砖)在双手前方一点,形成三角支点。","沿同一轨迹推起,手肘伸直回到倒 V。"],
+ cues:["髋顶得越高、双脚越靠近双手,越接近真实倒立推","下放轨迹是斜向前下方,不是垂直向下","手肘方向 45° 内收,与 HSPU 一致"],
+ faults:["髋部太低,做成了「头朝下的俯卧撑」","头落点和双手在一条直线上,失去三角支撑","腰部塌陷借力"],
+ std:"双脚垫高(箱上 pike)完成 <b>3 组 × 8 次</b>,头每次轻触地面。",
+ next:"垫高版达标后,开始靠墙倒立俯卧撑的离心(缓慢下放)训练。"},
+
+{id:"dip",cat:"gym",sub:"推类",lvl:"L2",zh:"双杠臂屈伸",en:"Dip",
+ goal:"垂直推的核心力量动作,直接决定双力臂转换后能否推起。胸、肩前束、三头的综合考验。",
+ steps:["双杠支撑,手臂伸直,肩下沉远离耳朵,身体微前倾。","屈肘下放,手肘向后,肩低于肘(上臂低于水平面)为全程。","底部短暂控制,不弹震。","垂直推起回到锁定支撑,顶端肩膀依然下沉。"],
+ cues:["身体前倾 + 双腿微前伸,重心更稳","下放深度循序渐进,肩部不适就缩小幅度","顶端「推到底」,锁定但不耸肩"],
+ faults:["半程 dip:下放不足上臂未低于水平","肩膀耸到耳朵,失去肩胛稳定","身体过度后仰,变成纯三头动作且压迫肩前侧"],
+ std:"男性 <b>10 次</b> / 女性 <b>5 次</b> 全程严格 dip。",
+ next:"达标后转向「吊环臂屈伸」适应不稳定平面,这是吊环双力臂的硬前提。"},
+
+{id:"ring-dip",cat:"gym",sub:"推类",lvl:"L3",zh:"吊环臂屈伸",en:"Ring Dip",
+ goal:"在不稳定吊环上完成 dip,稳定肌群参与度倍增。吊环双力臂的最后一块力量拼图。",
+ steps:["跳上吊环支撑,环转外(掌心相对略外旋),手臂锁直,环贴大腿外侧。","先稳定 3 秒再开始,屈肘下放,双环始终贴近身体。","下放到肩触环(或上臂低于水平)。","推起到锁定,顶端重新 turn out 锁定。"],
+ cues:["「环贴身」是吊环上的生存法则","支撑不稳就先练吊环支撑保持 30 秒","用 1–2 秒离心建立轨迹控制"],
+ faults:["双环外飘,手臂被拉开导致动作崩溃","底部弹震反弹,肩关节囊压力极大","顶端不 turn out,锁定不充分"],
+ std:"连续 <b>5 次</b> 全程吊环 dip,顶端每次 turn out 锁定。",
+ next:"配合假握深拉训练,就可以开始吊环双力臂的完整尝试了。"},
+
+{id:"wall-hspu",cat:"gym",sub:"推类",lvl:"L3",zh:"靠墙倒立俯卧撑",en:"Wall HSPU (Strict)",
+ goal:"倒立状态下的垂直推,把自身体重完整压在肩上。CrossFit 推类的标志性进阶动作。",
+ steps:["背对墙踢上倒立(kick up),脚跟贴墙,身体尽量垂直,手距墙约 15–25cm。","双手与肩同宽略宽,手指张开,目光看双手之间。","屈肘下放,头顶轻触地面(初期垫 abmat),头落点与双手呈三角形。","沿三角轨迹推起,回到手肘锁直的倒立。"],
+ cues:["三角支点:头在前、双手在后,绝不是一条直线","下放全程控制,「自由落体」式下放是受伤捷径","推起时想着「把地板推走」,呼气发力"],
+ faults:["腰部过度反弓,肋骨外翻","头触地位置太靠后,推起力线垂直被卡死","幅度自欺:垫子越摞越高"],
+ std:"严格(不借腿力)完成 <b>5 次</b>,头每次轻触地面、顶端锁直。",
+ next:"严格版达标后学「Kipping HSPU」提升 WOD 效率,或挑战下沉幅度(deficit)。"},
+
+{id:"kipping-hspu",cat:"gym",sub:"推类",lvl:"L3",zh:"Kipping 倒立俯卧撑",en:"Kipping HSPU",
+ goal:"用屈髋蹬腿的爆发力辅助推起,在 WOD 中以更少的肩部消耗刷次数。前提:严格 HSPU 已具备。",
+ steps:["倒立下放到头触地后,屈髋屈膝,膝盖收向胸口方向(身体折叠蓄力)。","爆发节奏:猛力向上蹬腿伸髋,同时双手全力推地。","腿的动能传导让身体弹起,手臂顺势锁直。","脚跟回贴墙,控制下放进入下一次。"],
+ cues:["蹬腿和推手必须同步,「腿到手到」","折叠要充分:膝盖收得越深,蹬伸动能越足","头触地是过渡不是休息,触地即蓄力"],
+ faults:["蹬腿和推手脱节,腿蹬完了手才发力","下放失控砸头砸颈——颈椎风险,必须控制离心","完全依赖 kipping,严格力量不足时大量刷次数"],
+ std:"连续 <b>8 次</b> 节奏一致的 kipping HSPU,每次锁直。",
+ next:"墙上动作圆满,开始「自由倒立」的平衡训练,迈向脱墙世界。"},
+
+{id:"free-hspu",cat:"gym",sub:"推类",lvl:"L4",zh:"自由倒立俯卧撑",en:"Freestanding HSPU",
+ goal:"推类技能树顶端:无墙倒立中完成俯卧撑,力量与平衡的双重大考。",
+ steps:["先确保自由倒立稳定保持 30 秒以上。","倒立中缓慢屈肘,重心随下放微调——肘屈时身体重心略前移,用手指抓地补偿。","下放至头接近地面(初期只下一半),停顿。","推起过程持续用手指和手掌根微调平衡,回到锁直倒立。"],
+ cues:["先练「负角度」:墙面正面倒立(chest-to-wall)半程推","下放越慢,平衡窗口越大","失衡就翻滚或转体下,提前练好退出方案"],
+ faults:["追求深度丢掉平衡,每次都摔出动作","肘部外展,推起轨迹漂移","屏息发力,倒立中缺氧头晕"],
+ std:"无墙完成 <b>1 次</b> 全程自由 HSPU 即登顶;连续 3 次是大师水准。",
+ next:"推类满级。可探索吊环 HSPU、单臂倒立等体操专项领域。"},
+
+// ---------------- 倒立类 ----------------
+{id:"wall-hs-hold",cat:"gym",sub:"倒立类",lvl:"L1",zh:"靠墙倒立支撑",en:"Wall Handstand Hold",
+ goal:"建立倒置状态的耐受度、手腕承重能力和肩部支撑力,一切倒立技能从这 30 秒开始。",
+ steps:["面向墙约一步距离,双手撑地与肩同宽,单腿后摆踢上墙(背对墙版)。","双脚跟贴墙,手臂完全锁直,肩主动上推(耸肩方向)。","收肋骨、夹臀,身体尽量呈直线,目光看双手之间地面。","下来时单腿先落,控制侧落,不要双腿砸下。"],
+ cues:["「推高」:肩向耳朵方向顶,身体越长越稳","手指像爪子一样抓地,这是倒立的「脚趾」","初学者每次 10–20 秒,累计量比单次时长重要"],
+ faults:["香蕉背:塌腰、肋骨外翻、脚找不到重心线","手肘微弯支撑,肘关节压力大","头过度后仰看墙,颈椎紧张"],
+ std:"靠墙稳定支撑 <b>60 秒</b>,身体基本成直线。",
+ next:"达标后练「墙面正面倒立」(chest-to-wall)修直线,同时开始 Wall Walk。"},
+
+{id:"wall-walk",cat:"gym",sub:"倒立类",lvl:"L2",zh:"墙面行走",en:"Wall Walk",
+ goal:"动态进出倒立的标准动作,训练肩部行走支撑与核心控制,CrossFit Open 常驻嘉宾。",
+ steps:["俯卧,脚抵墙根,推起成俯卧撑姿势。","双脚沿墙向上走,双手同步向墙的方向走近。","走到胸几乎贴墙、身体接近垂直,停顿 2 秒。","原路返回:手向外走、脚向下走,控制回到俯卧。"],
+ cues:["手每次移动幅度小一点,稳定永远优先","核心全程锁紧,腰塌的瞬间就是动作崩溃的开始","下墙阶段比上墙更考验控制,不要放弃离心"],
+ faults:["手脚节奏脱节,身体扭成麻花","上到顶端后直接「出溜」下来摔落","距墙太远就开始下放,变成大角度俯撑爬行"],
+ std:"连续 <b>5 次</b> 标准 wall walk(鼻尖接近触墙),全程控制无坠落。",
+ next:"上下墙自如后,开始练习脱墙瞬间的平衡——进入自由倒立。"},
+
+{id:"shoulder-tap",cat:"gym",sub:"倒立类",lvl:"L2",zh:"倒立交替触肩",en:"Handstand Shoulder Tap",
+ goal:"在倒立中练习重心左右转移,是从「双手支撑」到「倒立行走」之间的关键解锁动作。",
+ steps:["靠墙倒立(建议 chest-to-wall,脚尖点墙),双手撑稳。","重心缓慢压向左手,右手快速离地轻拍右肩,放回。","重心移向右手,左手拍左肩。","左右交替,保持髋部稳定不大幅扭动。"],
+ cues:["先练「重心转移不抬手」,能单手承重 2 秒再开始拍肩","抬手速度快、放手速度稳","身体越直,转移需要的幅度越小"],
+ faults:["靠扭髋甩身体完成触肩,而不是重心转移","手抬得太慢,单手支撑时间过长失衡","越拍越快导致节奏崩盘"],
+ std:"靠墙连续 <b>20 次</b>(左右各10)稳定触肩,髋部晃动幅度小。",
+ next:"触肩流畅后,倒立行走的「单手瞬间」你已经掌握了一半。"},
+
+{id:"free-hs",cat:"gym",sub:"倒立类",lvl:"L3",zh:"自由倒立",en:"Freestanding Handstand",
+ goal:"脱离墙壁的完全平衡倒立。手指、手腕、肩、核心组成一套精密的动态平衡系统。",
+ steps:["踢上倒立时控制力度:宁可不到位,不要踢过头。","平衡铁三角:身体前倒→手指抓地压回;后倒→掌根压+肩微开。","锁定身体:手肘伸直、肩推高、肋下收、夹臀、绷脚尖,把「变量」减到只剩手腕。","失衡超出调节范围时,转体侧落(pirouette bail)安全退出。"],
+ cues:["每天累计 5–10 分钟倒立时间,频率胜过时长","用手机侧面拍摄,对照「直线」自查","数呼吸:能匀速呼吸的倒立才是真稳定"],
+ faults:["靠不停走步「追平衡」,而不是用手指调节","身体软:肘弯、腰塌、腿散,变量太多无法控制","只练踢上,不练保持和退出"],
+ std:"无墙自由倒立稳定 <b>20 秒</b>(允许手指调节,不允许走步)。",
+ next:"静态稳了,让它动起来——倒立行走在等你。"},
+
+{id:"hs-walk",cat:"gym",sub:"倒立类",lvl:"L3",zh:"倒立行走",en:"Handstand Walk",
+ goal:"CrossFit 标志性技能:用双手走路。本质是「持续可控的失衡」——让身体始终轻微前倾,用迈手追赶重心。",
+ steps:["踢上倒立后,刻意让重心略微越过手掌前侧(轻微前倾)。","小步快频迈手,每步 10–15cm,像企鹅走路。","肩始终推高锁定,身体当成一根杆子整体平移。","目光锁定双手前方约 30cm 地面,提前规划路线。"],
+ cues:["「先会停,再会走」:走两步停一步,练刹车","步子小而快 > 步子大而慢","累了就主动下,变形的行走练不出质量"],
+ faults:["腰部反弓靠「拱腰」维持前倾,而非肩部前压","步幅过大,每一步都是惊险救球","只能直线冲刺,无法减速和转向"],
+ std:"连续行走 <b>10 米</b> 不落地(CrossFit Open 标准为 7.5 米分段)。",
+ next:"加入转向、过障碍(parallette 上行走),或回头精修自由 HSPU。"},
+
+{id:"press-hs",cat:"gym",sub:"倒立类",lvl:"L4",zh:"慢起倒立",en:"Press to Handstand",
+ goal:"不靠踢腿、用纯力量与柔韧把身体「举」进倒立。倒立类的优雅天花板,需肩部力量+压缩柔韧双修。",
+ steps:["站立前屈,双手撑地,重心前移到肩越过手腕上方。","双脚因重心前移而变轻、自然离地(不是跳起)。","保持团身或分腿,髋部持续上升到垂直。","髋到位后双腿缓慢上摆并拢,完成倒立。"],
+ cues:["核心前提:坐姿体前屈胸贴腿的柔韧 + 倒立稳定","先练垫高分腿 press(脚放箱子上)降低柔韧需求","「肩前移」是发动机,腿只是被动跟随"],
+ faults:["用小跳代替重心转移——那是跳上倒立不是 press","肩不敢前移,脚永远「很重」离不开地","髋升到一半肩缩回去,中途坍塌"],
+ std:"完成 <b>1 次</b> 无跳跃的分腿慢起倒立(straddle press)。",
+ next:"倒立类满级。团身 press、单臂支撑训练是更远的星辰大海。"},
+
+// ---------------- 核心与保持 ----------------
+{id:"plank",cat:"gym",sub:"核心与保持",lvl:"L1",zh:"平板支撑",en:"Plank",
+ goal:"全身张力的入门课:学会同时收紧腹、臀、腿,形成「一块板」。体操所有动作的张力原型。",
+ steps:["肘撑或直臂撑,手肘/手腕在肩正下方。","夹臀、收腹、大腿绷紧,身体从头到脚跟一条直线。","主动把地板「推开」,肩胛微微前伸,不要塌在肩窝里。","均匀呼吸,用腹压维持躯干刚性。"],
+ cues:["「肚脐找脊柱」+「夹硬币」同时进行","直线自查:臀部既不是山峰也不是山谷","抖是正常的,变形才需要停"],
+ std:"标准直臂平板 <b>90 秒</b> 无变形。",
+ faults:["臀部高耸卸力","腰部塌陷,压力全给腰椎","头下垂或过度抬头"],
+ next:"静态张力建立后,升级到体操专属的「空心身体保持」。"},
+
+{id:"hollow-hold",cat:"gym",sub:"核心与保持",lvl:"L1",zh:"空心身体保持",en:"Hollow Body Hold",
+ goal:"体操核心的「母动作」:腰椎压实地面的全身绷紧形态。引体、倒立、T2B 的张力都来自它。",
+ steps:["仰卧,双膝收向胸口,双手抱膝,把腰椎完全压进地面。","保持腰贴地,双腿伸直抬至约 45°,双臂沿耳侧伸直。","肩胛离地,目视脚尖方向,身体呈浅碗形。","腰一旦离地,立即收腿降低难度,腰贴地是底线。"],
+ cues:["难度阶梯:抱膝→单腿伸→双腿高位→双腿低位+举臂","下背部「碾压」地面的感觉贯穿全程","脚尖绷直,把张力送到末端"],
+ faults:["腰拱起离地——形似神不似,练了个寂寞","脖子使劲前探,下巴怼胸","憋气硬撑,10 秒就面红耳赤"],
+ std:"完整空心体(腿低位+双臂过头)保持 <b>45 秒</b>,腰不离地。",
+ next:"配合「反拱保持」练成一对,然后去杠上做悬垂举腿。"},
+
+{id:"arch-hold",cat:"gym",sub:"核心与保持",lvl:"L1",zh:"反拱保持",en:"Arch Hold (Superman)",
+ goal:"空心体的镜像动作:后链整体收紧。kipping 摆荡的「弓形」一半就是它。",
+ steps:["俯卧,双臂沿耳侧前伸,双腿伸直。","同时抬起双臂、胸口和双腿,只留腹部髋部贴地。","臀腿和上背持续发力,身体呈反弓。","保持均匀呼吸,目光斜下方,颈部中立。"],
+ cues:["抬「长」不抬「高」:向远处延伸而非向上折","夹臀主导抬腿,不是用腰硬撅","与 hollow 交替练习,1:1 配比"],
+ faults:["猛抬头看天花板,颈椎代偿","只抬上半身,腿黏在地上","腰部疼痛仍硬撑——立即缩小幅度"],
+ std:"标准反拱保持 <b>45 秒</b>,四肢离地高度稳定。",
+ next:"Hollow + Arch 双修达标,杠下摆荡(beat swing)将水到渠成。"},
+
+{id:"hanging-knee-raise",cat:"gym",sub:"核心与保持",lvl:"L2",zh:"悬垂举膝",en:"Hanging Knee Raise",
+ goal:"把核心训练搬到杠上:悬挂中对抗摆动收起双膝,是脚触杠(T2B)的直系前置。",
+ steps:["主动悬挂起始,肩胛下沉锁定。","骨盆后倾启动(想象「卷尾巴」),再带动双膝收向胸口。","膝盖高于髋部,顶端停 1 秒。","控制放下双腿,回到主动悬挂,不借反弹。"],
+ cues:["先动骨盆再动腿,顺序决定练的是腹肌还是髋屈肌","身体摆动用主动悬挂的张力压住","放下阶段越慢,T2B 来得越快"],
+ faults:["甩腿借惯性,核心全程旁观","死悬状态做举膝,肩部松垮","只举到大腿水平就算数"],
+ std:"连续 <b>12 次</b> 严格悬垂举膝(膝过髋、无摆动)。",
+ next:"换直腿版(举腿),然后学杠下摆荡节奏,正式挑战脚触杠。"},
+
+{id:"t2b",cat:"gym",sub:"核心与保持",lvl:"L3",zh:"脚触杠",en:"Toes-to-Bar",
+ goal:"WOD 高频动作:摆荡中双脚同时触杠。核心压缩力量与 kipping 节奏的结合体。",
+ steps:["杠下摆荡建立节奏:arch 与 hollow 流畅切换。","在 hollow 前摆瞬间,压杠+猛收髋,双腿向杠的方向折叠上踢。","双脚同时触杠(两脚都要碰到)。","腿下放时主动向后送,直接进入 arch 蓄力,无缝衔接下一次。"],
+ cues:["「脚去找杠」的路线是弧线不是直线","压杠(把杠推向脚的方向)能让脚省一半路","下放即蓄力,腿往后甩得越顺,下一次越轻松"],
+ faults:["每次触杠后摆荡归零,重新起摆","只有脚尖单脚碰到,判罚 no-rep","屈肘拉杠把自己「拽」上去,引体味儿太重"],
+ std:"连续 <b>10 次</b> 节奏不断的 kipping T2B。",
+ next:"核心压缩已经在线,L-sit 的静态版本会让你更全面。"},
+
+{id:"l-sit",cat:"gym",sub:"核心与保持",lvl:"L3",zh:"L 型支撑",en:"L-Sit",
+ goal:"静态核心压缩之王:支撑中双腿水平前伸。髋屈肌力量、肩部下压与腘绳肌柔韧的三重考验。",
+ steps:["双杠或 parallette 支撑,手臂锁直,肩用力下沉(远离耳朵)。","收腹、骨盆后倾,双腿并拢抬至水平。","膝盖伸直、脚尖绷直,身体呈 L 形。","保持均匀呼吸,直到无法维持水平就主动结束。"],
+ cues:["难度阶梯:团身坐→单腿伸→双腿微低于水平→标准 L","「肩下压」给腿让出空间,耸肩的 L-sit 撑不过 5 秒","地面 L-sit(无器械)比杠上更难,可作为进阶"],
+ faults:["膝盖弯曲假装水平","耸肩驼背,身体往下「坐」","腿低于水平 30° 还在硬数秒"],
+ std:"双杠上标准 L-sit 保持 <b>15 秒</b>。",
+ next:"L-sit 引体、L-sit 双力臂等组合技,或挑战 V-sit。"},
+
+{id:"dragon-flag",cat:"gym",sub:"核心与保持",lvl:"L4",zh:"龙旗",en:"Dragon Flag",
+ goal:"李小龙同款,核心抗伸展能力的天花板:仅肩部支撑,全身如旗杆般直线升降。",
+ steps:["仰卧长凳,双手反握头后凳沿固定上半身。","收紧全身,以肩上背为支点,把整个身体(直线!)抬起至接近垂直。","核心发力缓慢下放,身体保持直线,降到与地面约 15° 停住。","不触地,再次抬起。全程只有肩胛区域接触凳面。"],
+ cues:["从「负角度离心」开始:垂直位缓慢放下,放到哪算哪","夹臀是保持直线的密码,臀一松腰必塌","难度阶梯:团身→单腿→分腿→全直腿"],
+ faults:["腰部折叠,变成「举腿」而非「举身体」","下放失控自由落体,腰椎瞬间过伸","用脖子和手肘死顶借力"],
+ std:"完成 <b>5 次</b> 直腿龙旗,下放至低位停顿 1 秒。",
+ next:"核心技能树满级。前水平(front lever)是同源的下一座高峰。"},
+];
+
+// 移除占位注释后的完整动作池
+const ALL = MOVES.concat(MOVES2);
+const byId = Object.fromEntries(ALL.map(m=>[m.id,m]));
+
+// ================= 进阶路径定义 =================
+const PATHS = [
+ {zh:"引体之路",en:"Pull-up Line",desc:"从挂住单杠到翻越单杠。先用严格力量打地基,再学摆动技术提效率。",
+  chain:["dead-hang","active-hang","ring-row","strict-pullup","kipping-pullup","c2b","bar-mu"]},
+ {zh:"蝶式支线",en:"Butterfly Branch",desc:"Kipping 稳定后的竞技效率分支:用圆形轨迹刷新你的引体上限。",
+  chain:["kipping-pullup","butterfly-pullup"]},
+ {zh:"吊环之路",en:"Ring Line",desc:"不稳定平面的终极考验,终点是体操拉类王冠——吊环双力臂。",
+  chain:["ring-row","dip","ring-dip","ring-mu"]},
+ {zh:"倒立推之路",en:"HSPU Line",desc:"从俯卧撑到把自己倒着推起来,垂直推力量的完整进化链。",
+  chain:["pushup","pike-pushup","wall-hs-hold","wall-hspu","kipping-hspu","free-hspu"]},
+ {zh:"倒立平衡之路",en:"Handstand Line",desc:"靠墙、离墙、行走、慢起——把世界倒过来看的四个阶段。",
+  chain:["wall-hs-hold","wall-walk","shoulder-tap","free-hs","hs-walk","press-hs"]},
+ {zh:"核心压缩之路",en:"Core Line",desc:"从地面张力到杠上折叠再到静态绝技,体操核心的完整谱系。",
+  chain:["plank","hollow-hold","arch-hold","hanging-knee-raise","t2b","l-sit","dragon-flag"]},
+];
+
+// ================= 成就定义 =================
+const BADGES = [
+ {id:"first-master",ic:"🌱",nm:"第一步",cond:"掌握 1 个动作",test:s=>cnt(s,"mastered")>=1},
+ {id:"five-master",ic:"🔥",nm:"渐入佳境",cond:"掌握 5 个动作",test:s=>cnt(s,"mastered")>=5},
+ {id:"ten-master",ic:"💎",nm:"十全十美",cond:"掌握 10 个动作",test:s=>cnt(s,"mastered")>=10},
+ {id:"l3-club",ic:"⚡",nm:"进阶俱乐部",cond:"掌握任一 L3 动作",test:s=>ALL.some(m=>m.lvl==="L3"&&s.status[m.id]==="mastered")},
+ {id:"l4-club",ic:"👑",nm:"高阶传说",cond:"掌握任一 L4 动作",test:s=>ALL.some(m=>m.lvl==="L4"&&s.status[m.id]==="mastered")},
+ {id:"pull-done",ic:"🦍",nm:"背王",cond:"拉类全部掌握",test:s=>subDone(s,"拉类")},
+ {id:"push-done",ic:"🛡️",nm:"推土机",cond:"推类全部掌握",test:s=>subDone(s,"推类")},
+ {id:"hs-done",ic:"🙃",nm:"倒立大师",cond:"倒立类全部掌握",test:s=>subDone(s,"倒立类")},
+ {id:"core-done",ic:"🧱",nm:"钢铁核心",cond:"核心类全部掌握",test:s=>subDone(s,"核心与保持")},
+ {id:"log-1",ic:"✏️",nm:"开始记录",cond:"打卡 1 次",test:s=>logTotal(s)>=1},
+ {id:"log-20",ic:"📚",nm:"训练日志家",cond:"累计打卡 20 次",test:s=>logTotal(s)>=20},
+ {id:"log-50",ic:"🏛️",nm:"持之以恒",cond:"累计打卡 50 次",test:s=>logTotal(s)>=50},
+];
+function cnt(s,st){return Object.values(s.status).filter(v=>v===st).length}
+function subDone(s,sub){return ALL.filter(m=>m.sub===sub).every(m=>s.status[m.id]==="mastered")}
+function logTotal(s){return Object.values(s.logs).reduce((a,l)=>a+l.length,0)}
+
+// ================= 状态持久化 =================
+const KEY="cf-skilltree-v1";
+let state={status:{},logs:{},badges:{},open:{gym:true}};
+let storageOk=true;
+try{
+  const raw=localStorage.getItem(KEY);
+  if(raw){const p=JSON.parse(raw);state={...state,...p,status:p.status||{},logs:p.logs||{},badges:p.badges||{}}}
+}catch(e){storageOk=false}
+function save(){
+  if(!storageOk)return;
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
+}
+
+// ================= 全局UI状态 =================
+let tab="tree", treeView="moves", curMove=null, curFeel=null;
+let filterStatus="all", filterSub="all", filterLvl="all";
+const STATUS_META={
+  none:{ic:"",label:"未开始"},
+  want:{ic:"○",label:"想学"},
+  learning:{ic:"🌙",label:"进行中"},
+  mastered:{ic:"✓",label:"已掌握"},
+};
+const $=s=>document.querySelector(s);
+const root=$("#viewroot");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// ================= 渲染入口 =================
+function render(){
+  $("#pagetitle").textContent = tab==="tree"?"技能树":tab==="log"?"训练记录":"我的成就";
+  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  if(tab==="tree") renderTree();
+  else if(tab==="log") renderLog();
+  else renderMe();
+}
+
+// ---------------- 技能树视图 ----------------
+function renderTree(){
+  const counts={
+    all:ALL.length,
+    mastered:cnt(state,"mastered"),
+    learning:cnt(state,"learning"),
+    want:cnt(state,"want"),
+  };
+  let html=`<div class="viewtabs">
+    <button class="${treeView==="moves"?"on":""}" data-tv="moves">动作</button>
+    <button class="${treeView==="paths"?"on":""}" data-tv="paths">进阶路径</button>
+  </div>`;
+
+  if(treeView==="moves"){
+    html+=`<div class="filters">
+      <div class="chiprow">
+        ${chipS("all","全部",counts.all)}${chipS("mastered","✓ 已掌握",counts.mastered)}
+        ${chipS("learning","🌙 进行中",counts.learning)}${chipS("want","○ 想学",counts.want)}
+      </div>
+      <div class="chiprow">
+        ${chipSub("all","全部分类")}${SUBCATS.map(s=>chipSub(s,s)).join("")}
+      </div>
+      <div class="chiprow">
+        ${chipL("all","全部难度")}${Object.entries(LEVELS).map(([k,v])=>chipL(k,`${k} · ${v}`)).join("")}
+      </div>
+    </div>`;
+    html+=renderCats();
+  }else{
+    html+=PATHS.map(renderPath).join("");
+  }
+  root.innerHTML=html;
+  bindTree();
+}
+const lvlColor={L1:"var(--green)",L2:"var(--blue)",L3:"var(--amber)",L4:"var(--rose)"};
+function chipS(v,label,n){return `<button class="chip ${filterStatus===v?"on":""}" data-fs="${v}">${label} <span class="n">${n}</span></button>`}
+function chipSub(v,label){return `<button class="chip ${filterSub===v?"on":""}" data-fsub="${v}">${v!=="all"?'<span class="dot" style="background:var(--blue)"></span>':""}${label}</button>`}
+function chipL(v,label){return `<button class="chip ${filterLvl===v?"on":""}" data-fl="${v}">${v!=="all"?`<span class="dot" style="background:${lvlColor[v]}"></span>`:""}${label}</button>`}
+
+function visibleMoves(){
+  return ALL.filter(m=>{
+    const st=state.status[m.id]||"none";
+    if(filterStatus!=="all"&&st!==filterStatus)return false;
+    if(filterSub!=="all"&&m.sub!==filterSub)return false;
+    if(filterLvl!=="all"&&m.lvl!==filterLvl)return false;
+    return true;
+  });
+}
+function renderCats(){
+  const vis=visibleMoves();
+  return CATEGORIES.map(cat=>{
+    const catMoves=ALL.filter(m=>m.cat===cat.id);
+    const catVis=vis.filter(m=>m.cat===cat.id);
+    const done=catMoves.filter(m=>state.status[m.id]==="mastered").length;
+    const pct=catMoves.length?done/catMoves.length:0;
+    const open=state.open[cat.id]!==false;
+    const C=2*Math.PI*22;
+    let body="";
+    if(open){
+      SUBCATS.forEach(sub=>{
+        const subM=catVis.filter(m=>m.sub===sub);
+        if(!subM.length)return;
+        body+=`<div class="subhead"><span class="dot" style="background:var(--blue)"></span>${sub} <span class="n">· ${subM.length}</span></div>`;
+        body+=subM.map(renderMoveRow).join("");
+      });
+      if(!catVis.length)body+=`<div class="empty">当前筛选下没有动作<br>试试放宽筛选条件</div>`;
+    }
+    return `<div class="catcard ${open?"":"closed"}" data-cat="${cat.id}">
+      <div class="cathead" data-toggle="${cat.id}">
+        <div class="catring">
+          <svg width="52" height="52"><circle cx="26" cy="26" r="22" fill="none" stroke="var(--line)" stroke-width="4"/>
+          <circle cx="26" cy="26" r="22" fill="none" stroke="var(--green)" stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}" style="transition:stroke-dashoffset .6s"/></svg>
+          <div class="icon">${cat.icon}</div>
+        </div>
+        <div class="catinfo"><div class="zh">${cat.zh}</div><div class="en">${cat.en}</div></div>
+        <div class="catcount">${done}/${catMoves.length}</div>
+        <div class="caret">▾</div>
+      </div>
+      <div class="catbody">${body}</div>
+    </div>`;
+  }).join("");
+}
+function renderMoveRow(m){
+  const st=state.status[m.id]||"none";
+  const meta=STATUS_META[st];
+  const logs=(state.logs[m.id]||[]).length;
+  return `<div class="move" data-move="${m.id}">
+    <button class="statusbtn ${st}" data-cycle="${m.id}" title="点击切换状态">${meta.ic}</button>
+    <div class="movemain">
+      <div class="moveline1"><span class="lvl ${m.lvl}">${m.lvl}</span><span class="movezh">${esc(m.zh)}</span></div>
+      <div class="moveen">${esc(m.en)}</div>
+    </div>
+    <div class="movemeta">${logs?`<span class="logcount">打卡 ${logs}</span>`:""}<span class="arrow">›</span></div>
+  </div>`;
+}
+
+function renderPath(p){
+  const done=p.chain.filter(id=>state.status[id]==="mastered").length;
+  let nextFound=false;
+  const nodes=p.chain.map((id,i)=>{
+    const m=byId[id];const st=state.status[id]||"none";
+    const prevDone=i===0||state.status[p.chain[i-1]]==="mastered";
+    const isNext=!nextFound&&st!=="mastered"&&prevDone;
+    if(isNext)nextFound=true;
+    const railDone=i>0&&state.status[p.chain[i-1]]==="mastered"&&st==="mastered";
+    return `<div class="chainnode" data-move="${id}">
+      <div class="rail ${railDone?"done":""}"></div>
+      <div class="nodedot ${st} ${isNext?"next":""}">${STATUS_META[st].ic||""}</div>
+      <div class="nodetext"><div class="zh">${esc(m.zh)}</div><div class="en">${esc(m.en)} · ${m.lvl}</div></div>
+      <div class="nodetag ${isNext?"next":""}">${st==="mastered"?"已掌握":isNext?"▸ 下一站":st==="learning"?"进行中":""}</div>
+    </div>`;
+  }).join("");
+  return `<div class="pathcard">
+    <div class="pathtitle"><span class="zh">${p.zh}</span><span class="pct">${done}/${p.chain.length}</span></div>
+    <div class="pathdesc">${p.desc}</div>
+    <div class="chain">${nodes}</div>
+  </div>`;
+}
+
+function bindTree(){
+  document.querySelectorAll("[data-tv]").forEach(b=>b.onclick=()=>{treeView=b.dataset.tv;render()});
+  document.querySelectorAll("[data-fs]").forEach(b=>b.onclick=()=>{filterStatus=b.dataset.fs;render()});
+  document.querySelectorAll("[data-fsub]").forEach(b=>b.onclick=()=>{filterSub=b.dataset.fsub;render()});
+  document.querySelectorAll("[data-fl]").forEach(b=>b.onclick=()=>{filterLvl=b.dataset.fl;render()});
+  document.querySelectorAll("[data-toggle]").forEach(h=>h.onclick=()=>{
+    const id=h.dataset.toggle;state.open[id]=state.open[id]===false;save();render();
+  });
+  document.querySelectorAll("[data-cycle]").forEach(b=>b.onclick=e=>{
+    e.stopPropagation();cycleStatus(b.dataset.cycle);
+  });
+  document.querySelectorAll("[data-move]").forEach(r=>r.onclick=()=>openSheet(r.dataset.move));
+}
+
+// ---------------- 状态切换 ----------------
+const ORDER=["none","want","learning","mastered"];
+function cycleStatus(id){
+  const cur=state.status[id]||"none";
+  const next=ORDER[(ORDER.indexOf(cur)+1)%ORDER.length];
+  setStatus(id,next);
+}
+function setStatus(id,st){
+  const was=state.status[id]||"none";
+  if(st==="none")delete state.status[id];else state.status[id]=st;
+  save();
+  if(st==="mastered"&&was!=="mastered")celebrate(byId[id]);
+  checkBadges();
+  render();
+  if(curMove===id)fillSheet(id);
+}
+
+// ---------------- 庆祝 ----------------
+function celebrate(m){
+  toast(`🎉 已掌握「${m.zh}」!`);
+  const box=$("#confetti");const colors=["#50E3A4","#6CA8FF","#F5B14C","#F2697A","#B08CFF","#E8EDF2"];
+  for(let i=0;i<70;i++){
+    const p=document.createElement("div");p.className="cp";
+    p.style.left=50+(Math.random()*20-10)+"%";p.style.top="30%";
+    p.style.background=colors[i%colors.length];
+    p.style.setProperty("--dx",(Math.random()*2-1)*320+"px");
+    p.style.setProperty("--dy",(Math.random()*1.1+0.2)*420+"px");
+    p.style.setProperty("--rot",Math.random()*720-360+"deg");
+    p.style.animationDelay=Math.random()*0.15+"s";
+    box.appendChild(p);setTimeout(()=>p.remove(),1800);
+  }
+}
+let toastTimer=null;
+function toast(msg){
+  const t=$("#toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
+}
+function checkBadges(){
+  BADGES.forEach(b=>{
+    if(!state.badges[b.id]&&b.test(state)){
+      state.badges[b.id]=Date.now();save();
+      setTimeout(()=>toast(`🏅 解锁成就「${b.nm}」`),1200);
+    }
+  });
+}
+
+// ---------------- 详情抽屉 ----------------
+function openSheet(id){
+  curMove=id;curFeel=null;fillSheet(id);
+  $("#sheetmask").classList.add("show");$("#sheet").classList.add("show");
+  $("#sheet").scrollTop=0;
+}
+function closeSheet(){
+  curMove=null;
+  $("#sheetmask").classList.remove("show");$("#sheet").classList.remove("show");
+}
+$("#sheetmask").onclick=closeSheet;
+
+function fillSheet(id){
+  const m=byId[id];const st=state.status[id]||"none";
+  const logs=state.logs[id]||[];
+  $("#sheetinner").innerHTML=`
+  <div class="sheethead">
+    <div class="toprow"><span class="lvl ${m.lvl}">${m.lvl} · ${LEVELS[m.lvl]}</span><span class="en">${esc(m.en)}</span></div>
+    <h2>${esc(m.zh)}</h2>
+  </div>
+  <div class="statusrow">
+    <button class="${st==="want"?"on-want":""}" data-set="want">○ 想学</button>
+    <button class="${st==="learning"?"on-learning":""}" data-set="learning">🌙 进行中</button>
+    <button class="${st==="mastered"?"on-mastered":""}" data-set="mastered">✓ 已掌握</button>
+  </div>
+  <div class="tut">
+    <div class="tutsec"><h3><span class="bar v"></span>训练目标</h3><p>${esc(m.goal)}</p></div>
+    <div class="tutsec"><h3><span class="bar"></span>动作步骤</h3><ol class="steps">${m.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol></div>
+    <div class="tutsec"><h3><span class="bar b"></span>技术要点</h3><ul class="cues">${m.cues.map(c=>`<li>${esc(c)}</li>`).join("")}</ul></div>
+    <div class="tutsec"><h3><span class="bar r"></span>常见错误</h3><ul class="cues faults">${m.faults.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>
+    <div class="tutsec"><h3><span class="bar a"></span>达标标准</h3><div class="stdbox">${m.std}</div></div>
+    <div class="tutsec"><h3><span class="bar"></span>下一步</h3><p>${esc(m.next)}</p></div>
+  </div>
+  <div class="logsec">
+    <h3>练习打卡 <span class="n">${logs.length} 次</span></h3>
+    <div class="logform">
+      <textarea id="lognote" placeholder="今天练了什么?例如:弹力带引体 4×6,最后一组力竭…"></textarea>
+      <div class="feelrow">
+        <button data-feel="😤 艰难">😤 艰难</button>
+        <button data-feel="🙂 正常">🙂 正常</button>
+        <button data-feel="😎 轻松">😎 轻松</button>
+        <button data-feel="🚀 突破">🚀 突破</button>
+      </div>
+      <button class="logsave" id="logsave">记录这次练习</button>
+    </div>
+    <div>${logs.slice().reverse().map((l,ri)=>{
+      const i=logs.length-1-ri;
+      return `<div class="logitem"><span class="d">${l.d}</span><span class="t">${esc(l.t)||"完成练习"}</span><span class="f">${l.f||""}</span><button class="logdel" data-del="${i}">✕</button></div>`;
+    }).join("")||'<div class="empty">还没有打卡记录<br>每一次练习都值得被记住</div>'}</div>
+  </div>`;
+
+  document.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{
+    const v=b.dataset.set;const cur=state.status[id]||"none";
+    setStatus(id,cur===v?"none":v);
+  });
+  document.querySelectorAll("[data-feel]").forEach(b=>b.onclick=()=>{
+    curFeel=curFeel===b.dataset.feel?null:b.dataset.feel;
+    document.querySelectorAll("[data-feel]").forEach(x=>x.classList.toggle("on",x.dataset.feel===curFeel));
+  });
+  $("#logsave").onclick=()=>{
+    const t=$("#lognote").value.trim();
+    if(!t&&!curFeel){toast("写一句感受或选个状态再保存吧");return}
+    const now=new Date();
+    const d=`${now.getMonth()+1}/${now.getDate()}`;
+    (state.logs[id]=state.logs[id]||[]).push({d,t,f:curFeel,ts:Date.now()});
+    save();toast("✓ 已记录,继续加油");checkBadges();fillSheet(id);render();
+  };
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    state.logs[id].splice(+b.dataset.del,1);save();fillSheet(id);render();
+  });
+}
+
+// ---------------- 记录视图 ----------------
+function renderLog(){
+  const entries=[];
+  Object.entries(state.logs).forEach(([id,arr])=>arr.forEach(l=>entries.push({...l,id})));
+  entries.sort((a,b)=>b.ts-a.ts);
+  if(!entries.length){
+    root.innerHTML=`<div class="empty"><div class="big">📒</div>还没有训练记录<br>去技能树里打开一个动作,记录第一次练习吧</div>`;return;
+  }
+  const byDay={};
+  entries.forEach(e=>{
+    const day=new Date(e.ts).toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});
+    (byDay[day]=byDay[day]||[]).push(e);
+  });
+  root.innerHTML=Object.entries(byDay).map(([day,list])=>`
+    <div class="daycard"><div class="d">${day} · ${list.length} 条</div>
+    ${list.map(e=>`<div class="ent"><b>${esc(byId[e.id].zh)}</b><span>${esc(e.t)||"完成练习"} ${e.f||""}</span></div>`).join("")}
+    </div>`).join("");
+}
+
+// ---------------- 我的视图 ----------------
+function renderMe(){
+  const m=cnt(state,"mastered"),l=cnt(state,"learning"),w=cnt(state,"want"),lg=logTotal(state);
+  const unlocked=BADGES.filter(b=>state.badges[b.id]).length;
+  root.innerHTML=`
+  <div class="statgrid">
+    <div class="statbox g"><div class="v">${m}</div><div class="k">已掌握动作</div></div>
+    <div class="statbox b"><div class="v">${l}</div><div class="k">进行中</div></div>
+    <div class="statbox a"><div class="v">${lg}</div><div class="k">累计打卡</div></div>
+    <div class="statbox p"><div class="v">${unlocked}/${BADGES.length}</div><div class="k">解锁成就</div></div>
+  </div>
+  <div class="sectionlabel">成就墙</div>
+  <div class="badgegrid">${BADGES.map(b=>`
+    <div class="badge ${state.badges[b.id]?"unlocked":""}">
+      <div class="ic">${b.ic}</div><div class="nm">${b.nm}</div><div class="cond">${b.cond}</div>
+    </div>`).join("")}
+  </div>
+  <div class="databtns">
+    <button id="exportbtn">导出数据备份</button>
+    <button id="importbtn">导入数据</button>
+  </div>
+  <input type="file" id="importfile" accept=".json" style="display:none">
+  ${storageOk?"":'<p style="color:var(--amber);font-size:12px;margin-top:12px">⚠ 当前环境不支持本地存储,数据仅在本次会话内有效。请下载文件后用浏览器直接打开使用。</p>'}`;
+
+  $("#exportbtn").onclick=()=>{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=`skilltree-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
+    toast("✓ 备份已导出");
+  };
+  $("#importbtn").onclick=()=>$("#importfile").click();
+  $("#importfile").onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{const p=JSON.parse(r.result);
+        state={...state,...p,status:p.status||{},logs:p.logs||{},badges:p.badges||{}};
+        save();render();toast("✓ 数据已导入");
+      }catch(err){toast("文件格式不正确,导入失败")}
+    };
+    r.readAsText(f);
+  };
+}
+
+// ---------------- 底部导航 ----------------
+document.querySelectorAll(".tabbar button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});
+render();
+
+</script>
+<script>
+// ================= 扩展模块 1:动作演示动画 =================
+// 姿态模型(侧视图): head头 sh肩 el肘 ha手 hip髋 kn膝 an踝 toe趾 (+可选 el2/ha2 第二臂)
+// 画布 200x140, 地面 y=130
+const ILLUS={
+"dead-hang":{props:[["bar",18]],dur:2200,
+ A:{head:[107,33],sh:[100,42],el:[100,30],ha:[100,18],hip:[100,82],kn:[100,104],an:[100,120],toe:[106,125]},
+ B:{head:[106,36],sh:[100,45],el:[100,31],ha:[100,18],hip:[100,84],kn:[100,106],an:[100,122],toe:[106,127]},
+ cap:"放松悬挂 · 身体被动拉长"},
+"active-hang":{props:[["bar",18]],dur:1800,
+ A:{head:[106,36],sh:[100,45],el:[100,31],ha:[100,18],hip:[100,84],kn:[100,106],an:[100,122],toe:[106,127]},
+ B:{head:[107,28],sh:[100,38],el:[100,28],ha:[100,18],hip:[99,78],kn:[100,100],an:[100,116],toe:[106,121]},
+ cap:"肩胛下沉 · 耳肩之间拉出空间"},
+"ring-row":{props:[["floor"],["rings",78,58,52]],dur:1700,
+ A:{head:[90,70],sh:[100,80],el:[89,69],ha:[78,58],hip:[120,98],kn:[136,112],an:[152,128],toe:[160,122]},
+ B:{head:[74,57],sh:[84,66],el:[94,74],ha:[78,58],hip:[106,86],kn:[128,106],an:[152,128],toe:[160,122]},
+ cap:"身体一条直线 · 拉环触胸"},
+"pull-over":{props:[["bar",40]],dur:2000,
+ A:{head:[107,48],sh:[100,56],el:[98,48],ha:[100,40],hip:[92,72],kn:[84,58],an:[88,70],toe:[86,76]},
+ B:{head:[107,16],sh:[100,26],el:[100,33],ha:[100,40],hip:[101,56],kn:[99,80],an:[101,100],toe:[106,104]},
+ cap:"收腹送髋绕杠 · 翻到杠上支撑"},
+"strict-pullup":{props:[["bar",18]],dur:1700,
+ A:{head:[107,33],sh:[100,42],el:[100,30],ha:[100,18],hip:[100,82],kn:[100,104],an:[100,120],toe:[106,125]},
+ B:{head:[108,14],sh:[100,26],el:[96,37],ha:[100,18],hip:[100,64],kn:[97,88],an:[100,108],toe:[105,113]},
+ cap:"肩胛先沉 · 手肘后拉 · 下巴过杠"},
+"kipping-pullup":{props:[["bar",18]],dur:1300,
+ A:{head:[101,30],sh:[96,40],el:[98,29],ha:[100,18],hip:[108,76],kn:[112,98],an:[110,118],toe:[116,122]},
+ B:{head:[108,16],sh:[100,28],el:[96,38],ha:[100,18],hip:[94,64],kn:[88,88],an:[84,108],toe:[88,114]},
+ cap:"弓形↔空心切换 · 髋部驱动上拉"},
+"butterfly-pullup":{props:[["bar",18]],dur:1200,
+ A:{head:[112,17],sh:[104,28],el:[99,36],ha:[100,18],hip:[108,64],kn:[112,88],an:[116,106],toe:[121,110]},
+ B:{head:[98,33],sh:[94,44],el:[97,31],ha:[100,18],hip:[104,82],kn:[108,104],an:[112,120],toe:[117,124]},
+ cap:"绕杠画圆 · 无停顿循环"},
+"c2b":{props:[["bar",18]],dur:1500,
+ A:{head:[101,30],sh:[96,40],el:[98,29],ha:[100,18],hip:[108,76],kn:[112,98],an:[110,118],toe:[116,122]},
+ B:{head:[109,12],sh:[100,22],el:[92,34],ha:[100,18],hip:[101,60],kn:[98,84],an:[101,104],toe:[106,109]},
+ cap:"拉得更高 · 胸口迎杠"},
+"bar-mu":{props:[["bar",60]],dur:2000,
+ A:{head:[107,73],sh:[100,82],el:[100,71],ha:[100,60],hip:[96,106],kn:[92,120],an:[88,126],toe:[92,129]},
+ B:{head:[107,22],sh:[100,32],el:[100,46],ha:[100,60],hip:[101,62],kn:[99,86],an:[101,106],toe:[106,110]},
+ cap:"深拉+转换 · 从杠下翻到杠上"},
+"ring-mu":{props:[["rings",100,60,54]],dur:2000,
+ A:{head:[107,73],sh:[100,82],el:[100,71],ha:[100,60],hip:[96,106],kn:[92,120],an:[88,126],toe:[92,129]},
+ B:{head:[107,22],sh:[100,32],el:[100,46],ha:[100,60],hip:[101,62],kn:[99,86],an:[101,106],toe:[106,110]},
+ cap:"假握深拉 · 环贴身转换"},
+"pushup":{props:[["floor"]],dur:1600,
+ A:{head:[70,90],sh:[82,96],el:[80,112],ha:[78,128],hip:[118,104],kn:[140,110],an:[160,116],toe:[166,128]},
+ B:{head:[68,114],sh:[82,118],el:[94,120],ha:[78,128],hip:[118,120],kn:[140,123],an:[160,124],toe:[166,128]},
+ cap:"身体一块板 · 胸触地推起"},
+"pike-pushup":{props:[["floor"]],dur:1600,
+ A:{head:[84,102],sh:[78,92],el:[74,110],ha:[70,128],hip:[112,58],kn:[130,86],an:[146,114],toe:[150,128]},
+ B:{head:[66,122],sh:[72,108],el:[80,116],ha:[70,128],hip:[108,64],kn:[128,90],an:[146,114],toe:[150,128]},
+ cap:"倒V起始 · 头顶斜向触地"},
+"dip":{props:[["pbar",70]],dur:1500,
+ A:{head:[106,30],sh:[100,40],el:[100,55],ha:[100,70],hip:[98,76],kn:[94,100],an:[96,120],toe:[101,124]},
+ B:{head:[106,52],sh:[100,62],el:[110,68],ha:[100,70],hip:[96,94],kn:[90,114],an:[93,126],toe:[98,129]},
+ cap:"肩低于肘为全程 · 推回锁定"},
+"ring-dip":{props:[["rings",100,70,64]],dur:1500,
+ A:{head:[106,30],sh:[100,40],el:[100,55],ha:[100,70],hip:[98,76],kn:[94,100],an:[96,120],toe:[101,124]},
+ B:{head:[106,52],sh:[100,62],el:[110,68],ha:[100,70],hip:[96,94],kn:[90,114],an:[93,126],toe:[98,129]},
+ cap:"环贴身 · 顶端转外锁定"},
+"wall-hspu":{props:[["floor"],["wall",152]],dur:1700,
+ A:{head:[117,100],sh:[112,88],el:[112,108],ha:[112,128],hip:[118,50],kn:[130,33],an:[148,22],toe:[150,16]},
+ B:{head:[118,124],sh:[112,106],el:[119,116],ha:[112,128],hip:[120,68],kn:[133,46],an:[150,28],toe:[152,22]},
+ cap:"三角支点下放 · 头轻触地推起"},
+"kipping-hspu":{props:[["floor"],["wall",152]],dur:1400,
+ A:{head:[118,124],sh:[112,106],el:[119,116],ha:[112,128],hip:[124,80],kn:[110,68],an:[120,54],toe:[124,50]},
+ B:{head:[117,100],sh:[112,88],el:[112,108],ha:[112,128],hip:[118,50],kn:[130,33],an:[148,22],toe:[150,16]},
+ cap:"折叠蓄力 · 蹬腿与推手同步"},
+"free-hspu":{props:[["floor"]],dur:1800,
+ A:{head:[105,100],sh:[100,88],el:[100,108],ha:[100,128],hip:[100,56],kn:[100,36],an:[100,16],toe:[95,12]},
+ B:{head:[106,122],sh:[101,106],el:[108,116],ha:[100,128],hip:[103,70],kn:[103,48],an:[103,26],toe:[98,22]},
+ cap:"无墙下放推起 · 手指持续调平衡"},
+"wall-hs-hold":{props:[["floor"],["wall",152]],dur:2400,
+ A:{head:[117,100],sh:[112,88],el:[112,108],ha:[112,128],hip:[118,50],kn:[130,33],an:[148,22],toe:[150,16]},
+ B:{head:[117,97],sh:[112,85],el:[112,106],ha:[112,128],hip:[117,47],kn:[129,30],an:[148,20],toe:[150,14]},
+ cap:"肩主动推高 · 身体拉成直线"},
+"wall-walk":{props:[["floor"],["wall",160]],dur:2200,
+ A:{head:[55,90],sh:[64,96],el:[62,112],ha:[60,128],hip:[100,106],kn:[124,112],an:[152,118],toe:[158,122]},
+ B:{head:[128,98],sh:[124,88],el:[122,108],ha:[120,128],hip:[128,52],kn:[136,36],an:[152,22],toe:[157,16]},
+ cap:"手脚同步走 · 胸贴墙再原路返回"},
+"shoulder-tap":{props:[["floor"],["wall",152]],dur:1500,
+ A:{head:[117,100],sh:[112,88],el:[111,108],ha:[110,128],el2:[115,108],ha2:[117,128],hip:[118,50],kn:[130,33],an:[148,22],toe:[150,16]},
+ B:{head:[117,100],sh:[112,88],el:[110,108],ha:[108,128],el2:[120,102],ha2:[117,90],hip:[118,50],kn:[130,33],an:[148,22],toe:[150,16]},
+ cap:"重心移到单手 · 另一手快拍肩"},
+"free-hs":{props:[["floor"]],dur:2200,
+ A:{head:[106,100],sh:[101,88],el:[100,108],ha:[100,128],hip:[97,56],kn:[99,36],an:[105,16],toe:[100,12]},
+ B:{head:[105,100],sh:[100,88],el:[100,108],ha:[100,128],hip:[100,56],kn:[100,36],an:[100,16],toe:[95,12]},
+ cap:"手指抓地微调 · 把身体锁成一根杆"},
+"hs-walk":{props:[["floor"]],dur:1100,
+ A:{head:[105,100],sh:[100,88],el:[97,108],ha:[92,128],el2:[108,104],ha2:[112,116],hip:[101,56],kn:[101,36],an:[101,16],toe:[96,12]},
+ B:{head:[107,100],sh:[102,88],el:[99,104],ha:[94,116],el2:[110,108],ha2:[112,128],hip:[103,56],kn:[103,36],an:[103,16],toe:[98,12]},
+ cap:"小步快频 · 用迈手追赶重心"},
+"press-hs":{props:[["floor"]],dur:2400,
+ A:{head:[86,104],sh:[92,96],el:[90,112],ha:[88,128],hip:[110,62],kn:[112,94],an:[108,124],toe:[102,128]},
+ B:{head:[95,100],sh:[90,88],el:[89,108],ha:[88,128],hip:[90,56],kn:[90,36],an:[90,16],toe:[85,12]},
+ cap:"肩前移让脚变轻 · 髋升到垂直"},
+"plank":{props:[["floor"]],dur:2600,
+ A:{head:[70,90],sh:[82,96],el:[80,112],ha:[78,128],hip:[118,104],kn:[140,110],an:[160,116],toe:[166,128]},
+ B:{head:[70,91],sh:[82,97],el:[80,112],ha:[78,128],hip:[118,106],kn:[140,111],an:[160,117],toe:[166,128]},
+ cap:"夹臀收腹 · 从头到脚跟一条直线"},
+"hollow-hold":{props:[["floor"]],dur:2200,
+ A:{head:[52,114],sh:[62,122],el:[48,114],ha:[34,108],hip:[100,124],kn:[124,114],an:[146,106],toe:[152,103]},
+ B:{head:[52,106],sh:[64,116],el:[44,104],ha:[30,98],hip:[100,124],kn:[126,108],an:[150,96],toe:[156,92]},
+ cap:"腰椎压实地面 · 身体呈浅碗形"},
+"arch-hold":{props:[["floor"]],dur:2200,
+ A:{head:[50,116],sh:[62,118],el:[46,112],ha:[32,110],hip:[100,122],kn:[124,120],an:[148,116],toe:[154,114]},
+ B:{head:[48,104],sh:[60,112],el:[42,104],ha:[28,98],hip:[100,122],kn:[126,112],an:[150,102],toe:[157,98]},
+ cap:"向远处延伸 · 四肢同时离地"},
+"hanging-knee-raise":{props:[["bar",18]],dur:1600,
+ A:{head:[107,33],sh:[100,42],el:[100,30],ha:[100,18],hip:[100,82],kn:[100,104],an:[100,120],toe:[106,125]},
+ B:{head:[107,33],sh:[100,42],el:[100,30],ha:[100,18],hip:[98,80],kn:[86,62],an:[92,76],toe:[90,82]},
+ cap:"骨盆先后倾 · 膝盖收过髋"},
+"t2b":{props:[["bar",18]],dur:1400,
+ A:{head:[101,30],sh:[96,40],el:[98,29],ha:[100,18],hip:[108,76],kn:[112,98],an:[110,118],toe:[116,122]},
+ B:{head:[108,34],sh:[100,40],el:[100,29],ha:[100,18],hip:[88,66],kn:[91,44],an:[94,26],toe:[96,19]},
+ cap:"压杠+收髋 · 双脚同时触杠"},
+"l-sit":{props:[["pbar",80]],dur:1900,
+ A:{head:[106,46],sh:[100,56],el:[100,68],ha:[100,80],hip:[97,84],kn:[82,72],an:[86,84],toe:[84,88]},
+ B:{head:[106,46],sh:[100,56],el:[100,68],ha:[100,80],hip:[96,84],kn:[72,82],an:[50,80],toe:[44,79]},
+ cap:"肩下压给腿让空间 · 双腿水平"},
+"dragon-flag":{props:[["floor"],["bench",60,150,100]],dur:2000,
+ A:{head:[62,104],sh:[72,100],el:[58,96],ha:[56,108],hip:[74,68],kn:[75,46],an:[76,24],toe:[72,20]},
+ B:{head:[62,104],sh:[72,100],el:[58,96],ha:[56,108],hip:[100,90],kn:[122,84],an:[144,78],toe:[150,76]},
+ cap:"仅肩部支撑 · 全身如旗杆升降"},
+};
+
+// ---------- 渲染器 ----------
+function illusSVG(id){
+  const cfg=ILLUS[id];if(!cfg)return"";
+  let props="";
+  cfg.props.forEach(p=>{
+    if(p[0]==="floor")props+=`<line x1="14" y1="130" x2="186" y2="130" class="ip"/>`;
+    else if(p[0]==="bar"){const y=p[1];props+=`<line x1="46" y1="${y}" x2="46" y2="130" class="ip"/><line x1="154" y1="${y}" x2="154" y2="130" class="ip"/><line x1="46" y1="${y}" x2="154" y2="${y}" class="ipb"/>`}
+    else if(p[0]==="wall")props+=`<line x1="${p[1]}" y1="14" x2="${p[1]}" y2="130" class="ip"/>`;
+    else if(p[0]==="rings"){const[_,x,y,sl]=p;props+=`<line x1="${x}" y1="0" x2="${x}" y2="${sl}" class="ip" stroke-dasharray="3 3"/><circle cx="${x}" cy="${y}" r="6" class="ipr"/>`}
+    else if(p[0]==="pbar"){const y=p[1];props+=`<line x1="70" y1="${y}" x2="130" y2="${y}" class="ipb"/><line x1="76" y1="${y}" x2="76" y2="130" class="ip"/><line x1="124" y1="${y}" x2="124" y2="130" class="ip"/>`}
+    else if(p[0]==="bench"){const[_,x1,x2,y]=p;props+=`<rect x="${x1}" y="${y}" width="${x2-x1}" height="9" rx="3" class="ipf"/><line x1="${x1+8}" y1="${y+9}" x2="${x1+8}" y2="130" class="ip"/><line x1="${x2-8}" y1="${y+9}" x2="${x2-8}" y2="130" class="ip"/>`}
+  });
+  return `<div class="illus"><svg viewBox="0 0 200 140" id="figsvg">
+    ${props}
+    <g class="ghost" id="ghostg"></g>
+    <g id="figg">
+      <circle id="f-head" r="7" class="ifh"/>
+      <path id="f-body" class="ifl"/>
+      <path id="f-arm" class="ifl"/>
+      <path id="f-arm2" class="ifl"/>
+      <path id="f-leg" class="ifl"/>
+      <circle id="f-grip" r="2.6" class="ifg"/>
+    </g>
+  </svg><div class="illuscap">${cfg.cap} <span class="ab">A ⇄ B</span></div></div>`;
+}
+let illusRAF=null;
+function lerp(a,b,t){return a+(b-a)*t}
+function lp(pa,pb,t){return[lerp(pa[0],pb[0],t),lerp(pa[1],pb[1],t)]}
+function drawPose(A,B,t){
+  const j={};
+  ["head","sh","el","ha","hip","kn","an","toe","el2","ha2"].forEach(k=>{
+    if(A[k]&&B[k])j[k]=lp(A[k],B[k],t);else if(A[k])j[k]=A[k];
+  });
+  const g=id=>document.getElementById(id);
+  if(!g("f-head"))return false;
+  g("f-head").setAttribute("cx",j.head[0]);g("f-head").setAttribute("cy",j.head[1]);
+  g("f-body").setAttribute("d",`M${j.sh} L${j.hip}`);
+  g("f-arm").setAttribute("d",`M${j.sh} L${j.el} L${j.ha}`);
+  g("f-arm2").setAttribute("d",j.el2?`M${j.sh} L${j.el2} L${j.ha2}`:"");
+  g("f-leg").setAttribute("d",`M${j.hip} L${j.kn} L${j.an} L${j.toe}`);
+  g("f-grip").setAttribute("cx",j.ha[0]);g("f-grip").setAttribute("cy",j.ha[1]);
+  return true;
+}
+function startIllus(id){
+  stopIllus();
+  const cfg=ILLUS[id];if(!cfg)return;
+  // 残影:起始位淡描
+  const ghost=document.getElementById("ghostg");
+  if(ghost){
+    const A=cfg.A;
+    let d2=A.el2?`<path class="ifl" d="M${A.sh} L${A.el2} L${A.ha2}"/>`:"";
+    ghost.innerHTML=`<circle class="ifh" cx="${A.head[0]}" cy="${A.head[1]}" r="7"/>
+      <path class="ifl" d="M${A.sh} L${A.hip}"/><path class="ifl" d="M${A.sh} L${A.el} L${A.ha}"/>${d2}
+      <path class="ifl" d="M${A.hip} L${A.kn} L${A.an} L${A.toe}"/>`;
+  }
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    drawPose(cfg.A,cfg.B,1);return;
+  }
+  const dur=cfg.dur,hold=420,cycle=(dur+hold)*2;
+  const t0=performance.now();
+  function frame(now){
+    const e=(now-t0)%cycle;
+    let t;
+    if(e<dur)t=e/dur;
+    else if(e<dur+hold)t=1;
+    else if(e<dur*2+hold)t=1-(e-dur-hold)/dur;
+    else t=0;
+    t=(1-Math.cos(Math.PI*t))/2; // ease
+    if(!drawPose(cfg.A,cfg.B,t)){illusRAF=null;return}
+    illusRAF=requestAnimationFrame(frame);
+  }
+  illusRAF=requestAnimationFrame(frame);
+}
+function stopIllus(){if(illusRAF){cancelAnimationFrame(illusRAF);illusRAF=null}}
+
+// 注入到详情抽屉
+const _fillSheet=fillSheet;
+fillSheet=function(id){
+  _fillSheet(id);
+  const tut=document.querySelector("#sheetinner .tut");
+  if(tut&&ILLUS[id]){
+    const wrap=document.createElement("div");wrap.innerHTML=illusSVG(id);
+    tut.parentNode.insertBefore(wrap.firstChild,tut);
+    startIllus(id);
+  }
+};
+const _closeSheet=closeSheet;
+closeSheet=function(){stopIllus();_closeSheet()};
+document.getElementById("sheetmask").onclick=()=>closeSheet();
+
+// ================= 扩展模块 2:WOD =================
+state.wods=state.wods||[];
+state.ai=state.ai||{base:"https://dashscope.aliyuncs.com/compatible-mode/v1",key:"",tmodel:"qwen-plus",vmodel:"qwen-vl-max"};
+state.wodCache=state.wodCache||{};
+
+// ---- CrossFit 术语对照(离线可用) ----
+const GLOSSARY=[
+["AMRAP","在规定时间内尽可能多轮/次 (As Many Rounds/Reps As Possible)"],
+["EMOM","每分钟开始时做规定动作 (Every Minute On the Minute)"],
+["For Time","计时完成,越快越好"],["RFT","计时完成规定轮数 (Rounds For Time)"],
+["Rx / Rx'd","按处方重量与标准完成,不缩放"],["Scaled","缩放/降阶版本"],
+["WOD","今日训练 (Workout of the Day)"],["Buy-in","正式计时前的入场动作"],
+["Cash-out","主体完成后的收尾动作"],["Chipper","一长串动作各做一次性大量次数"],
+["Couplet / Triplet","两个/三个动作的组合"],["Tabata","20秒全力+10秒休息×8轮"],
+["Thruster","前蹲+借力推举的连贯动作(颈前深蹲推)"],["Clean","翻铃/上膊"],
+["Power Clean","高翻"],["Squat Clean","深蹲翻"],["Jerk","挺举"],["Snatch","抓举"],
+["Deadlift","硬拉"],["Front Squat","颈前深蹲"],["Back Squat","颈后深蹲"],["OHS","过头深蹲 (Overhead Squat)"],
+["Push Press","借力推举"],["Push Jerk","借力挺"],["STO","肩上推到过头 (Shoulder to Overhead)"],
+["Wall Ball","药球抛墙"],["KB Swing","壶铃摆动 (Kettlebell Swing)"],["DB","哑铃 (Dumbbell)"],
+["Box Jump","跳箱"],["Burpee","波比跳"],["Double-Under","双摇跳绳"],["DU","双摇"],["Single-Under","单摇"],
+["Pull-up","引体向上"],["C2B / Chest-to-Bar","胸触杠引体"],["T2B / Toes-to-Bar","脚触杠"],
+["Muscle-up","双力臂"],["HSPU","倒立俯卧撑 (Handstand Push-up)"],["HS Walk","倒立行走"],
+["Pistol","单腿深蹲"],["Lunge","弓步"],["GHD Sit-up","GHD仰卧起坐"],["Rope Climb","爬绳"],
+["Row","划船机"],["Cal","卡路里(划船机/风扇车计量)"],["Run","跑步"],["Rest","休息"],
+["Bodyweight","自重"],["Unbroken","不间断完成"],["Time Cap","时间上限"],
+["Hero WOD","英雄纪念日训练(通常极高强度)"],["Girls WOD","经典基准训练(如 Fran/Cindy/Grace)"],
+];
+function annotate(en){
+  const found=[];const lower=en.toLowerCase();
+  GLOSSARY.forEach(([t,zh])=>{
+    const key=t.split(" / ")[0].toLowerCase();
+    if(lower.includes(key)&&!found.some(f=>f[0]===t))found.push([t,zh]);
+  });
+  return found;
+}
+
+// ---- AI 接口(OpenAI 兼容) ----
+function aiReady(){return !!(state.ai.key&&state.ai.base)}
+async function aiChat(messages,model){
+  const r=await fetch(state.ai.base.replace(/\/$/,"")+"/chat/completions",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+state.ai.key},
+    body:JSON.stringify({model,messages,max_tokens:1500})
+  });
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const d=await r.json();
+  return d.choices?.[0]?.message?.content||"";
+}
+
+// ---- 官方 WOD 抓取 ----
+function todayKey(){const n=new Date();return `${n.getFullYear()}-${n.getMonth()+1}-${n.getDate()}`}
+async function fetchOfficial(){
+  const btn=$("#fetchwod");btn.textContent="获取中…";btn.disabled=true;
+  try{
+    const r=await fetch("https://r.jina.ai/https://www.crossfit.com/workout",{headers:{"Accept":"text/plain"}});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    let md=await r.text();
+    md=md.replace(/!\[[^\]]*\]\([^)]*\)/g,"").replace(/\[([^\]]*)\]\([^)]*\)/g,"$1");
+    let body=md;
+    const wi=md.search(/workout of the day/i);
+    if(wi>-1)body=md.slice(wi);
+    const cut=body.search(/(Stimulus and Strategy|Scaling:|Post .{0,40}comments|Compare to)/i);
+    let main=(cut>40?body.slice(0,cut):body).trim();
+    main=main.split("\n").filter(l=>!/^(menu|search|sign in|log in|shop|games|about)/i.test(l.trim())).join("\n");
+    if(main.length>1600)main=main.slice(0,1600)+"\n…";
+    if(main.length<30)throw new Error("内容解析为空");
+    state.wodCache[todayKey()]={en:main,zh:state.wodCache[todayKey()]?.zh||""};
+    save();renderLog();toast("✓ 已获取今日官方 WOD");
+  }catch(e){
+    toast("获取失败:"+e.message+"(可能是网络或代理限制)");
+    btn.textContent="重新获取";btn.disabled=false;
+  }
+}
+async function explainOfficial(){
+  const c=state.wodCache[todayKey()];if(!c?.en)return;
+  if(!aiReady()){toast("请先在「我的」页配置 AI 接口");return}
+  const btn=$("#explainwod");btn.textContent="生成中…";btn.disabled=true;
+  try{
+    const zh=await aiChat([
+      {role:"system",content:"你是资深CrossFit教练。把官方WOD翻译并讲解成中文:1)训练内容(保留英文动作名+中文注释) 2)训练刺激与配速策略 3)常见缩放建议。简洁分段,不要废话。"},
+      {role:"user",content:c.en}
+    ],state.ai.tmodel);
+    c.zh=zh;save();renderLog();toast("✓ 中文讲解已生成");
+  }catch(e){
+    toast("AI 调用失败:"+e.message);
+    btn.textContent="重试";btn.disabled=false;
+  }
+}
+
+// ---- 白板照片 ----
+let wodPhoto=null;
+function compressImage(file,cb){
+  const img=new Image();
+  img.onload=()=>{
+    const max=900,sc=Math.min(1,max/Math.max(img.width,img.height));
+    const cv=document.createElement("canvas");
+    cv.width=img.width*sc;cv.height=img.height*sc;
+    cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+    cb(cv.toDataURL("image/jpeg",0.72));
+  };
+  img.src=URL.createObjectURL(file);
+}
+async function ocrBoard(){
+  if(!wodPhoto){toast("先选择一张白板照片");return}
+  if(!aiReady()){toast("请先在「我的」页配置 AI 接口(需视觉模型)");return}
+  const btn=$("#ocrbtn");btn.textContent="识别中…";btn.disabled=true;
+  try{
+    const text=await aiChat([
+      {role:"user",content:[
+        {type:"image_url",image_url:{url:wodPhoto}},
+        {type:"text",text:"这是健身房白板上的 WOD。请把训练内容转写成清晰文字:保留英文动作名,标注次数/重量/时间结构(如 AMRAP/EMOM/For Time)。只输出训练内容本身。"}
+      ]}
+    ],state.ai.vmodel);
+    $("#wodcontent").value=text.trim();
+    toast("✓ 白板内容已识别,请核对");
+  }catch(e){toast("识别失败:"+e.message)}
+  btn.textContent="AI 识别白板";btn.disabled=false;
+}
+
+// ---- 记录视图(重写) ----
+const WODTYPES=["For Time","AMRAP","EMOM","Strength","其他"];
+let wodType="For Time";
+renderLog=function(){
+  const tk=todayKey(),cache=state.wodCache[tk];
+  const ann=cache?.en?annotate(cache.en):[];
+  let html=`
+  <div class="pathcard">
+    <div class="pathtitle"><span class="zh">今日官方 WOD</span><span class="pct" style="font-size:11px">crossfit.com</span></div>
+    ${cache?.en?`
+      <pre class="wodpre">${esc(cache.en)}</pre>
+      ${ann.length?`<div class="glossbox"><div class="glosstitle">术语对照</div>${ann.map(([t,z])=>`<div class="glossrow"><b>${esc(t)}</b><span>${esc(z)}</span></div>`).join("")}</div>`:""}
+      ${cache.zh?`<div class="zhbox"><div class="glosstitle" style="color:var(--green)">中文讲解</div><pre class="wodpre" style="border:none;padding:0;background:none">${esc(cache.zh)}</pre></div>`
+        :`<button class="wodbtn" id="explainwod">✨ AI 生成中文讲解</button>`}
+      <button class="wodbtn ghostbtn" id="fetchwod">刷新</button>`
+    :`<div class="pathdesc">从 crossfit.com/workout 获取官方每日训练,自动附 CrossFit 术语中英对照。</div>
+      <button class="wodbtn" id="fetchwod">获取今日 WOD</button>`}
+  </div>
+
+  <div class="pathcard">
+    <div class="pathtitle"><span class="zh">记录今天的 WOD</span></div>
+    <div class="logform" style="margin-top:12px">
+      <input class="wodinput" id="wodname" placeholder="名称,如 Fran / 馆内自编">
+      <div class="feelrow" id="wodtypes">${WODTYPES.map(t=>`<button data-wt="${t}" class="${t===wodType?"on":""}">${t}</button>`).join("")}</div>
+      <textarea id="wodcontent" style="height:96px" placeholder="训练内容,如:21-15-9 Thruster 42.5kg / Pull-up…&#10;也可以拍白板照片让 AI 识别"></textarea>
+      <input class="wodinput" id="wodscore" placeholder="成绩,如 7:32 / 12轮+5次 / 85kg">
+      <div class="photobar">
+        <label class="wodbtn ghostbtn" style="flex:1;text-align:center">📷 白板照片<input type="file" id="wodphoto" accept="image/*" capture="environment" style="display:none"></label>
+        <button class="wodbtn ghostbtn" id="ocrbtn" style="flex:1">AI 识别白板</button>
+      </div>
+      <div id="photopreview"></div>
+      <button class="logsave" id="wodsave">保存 WOD 记录</button>
+    </div>
+  </div>`;
+
+  // WOD 历史
+  if(state.wods.length){
+    html+=`<div class="sectionlabel">WOD 历史</div>`;
+    html+=state.wods.slice().reverse().map((w,ri)=>{
+      const i=state.wods.length-1-ri;
+      return `<div class="daycard">
+        <div class="d">${w.d} · ${esc(w.type)}${w.name?` · ${esc(w.name)}`:""}
+          <button class="logdel" data-wdel="${i}" style="float:right">✕</button></div>
+        ${w.content?`<pre class="wodpre" style="margin:4px 0">${esc(w.content)}</pre>`:""}
+        ${w.score?`<div class="ent"><b>成绩</b><span style="color:var(--green);font-family:var(--mono)">${esc(w.score)}</span></div>`:""}
+        ${w.photo?`<img class="wodimg" src="${w.photo}" data-zoom>`:""}
+      </div>`;
+    }).join("");
+  }
+
+  // 动作打卡(原逻辑)
+  const entries=[];
+  Object.entries(state.logs).forEach(([id,arr])=>arr.forEach(l=>entries.push({...l,id})));
+  entries.sort((a,b)=>b.ts-a.ts);
+  if(entries.length){
+    html+=`<div class="sectionlabel">动作打卡</div>`;
+    const byDay={};
+    entries.forEach(e=>{
+      const day=new Date(e.ts).toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});
+      (byDay[day]=byDay[day]||[]).push(e);
+    });
+    html+=Object.entries(byDay).map(([day,list])=>`
+      <div class="daycard"><div class="d">${day} · ${list.length} 条</div>
+      ${list.map(e=>`<div class="ent"><b>${esc(byId[e.id].zh)}</b><span>${esc(e.t)||"完成练习"} ${e.f||""}</span></div>`).join("")}
+      </div>`).join("");
+  }
+  if(!state.wods.length&&!entries.length&&!cache?.en){
+    html+=`<div class="empty"><div class="big">📒</div>训练记录会出现在这里</div>`;
+  }
+  root.innerHTML=html;
+
+  // 绑定
+  $("#fetchwod")&&($("#fetchwod").onclick=fetchOfficial);
+  $("#explainwod")&&($("#explainwod").onclick=explainOfficial);
+  document.querySelectorAll("[data-wt]").forEach(b=>b.onclick=()=>{wodType=b.dataset.wt;
+    document.querySelectorAll("[data-wt]").forEach(x=>x.classList.toggle("on",x.dataset.wt===wodType))});
+  $("#wodphoto").onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    compressImage(f,url=>{wodPhoto=url;$("#photopreview").innerHTML=`<img class="wodimg" src="${url}">`});
+  };
+  $("#ocrbtn").onclick=ocrBoard;
+  $("#wodsave").onclick=()=>{
+    const name=$("#wodname").value.trim(),content=$("#wodcontent").value.trim(),score=$("#wodscore").value.trim();
+    if(!content&&!name&&!wodPhoto){toast("至少填写名称、内容或附一张照片");return}
+    const n=new Date();
+    state.wods.push({d:`${n.getMonth()+1}/${n.getDate()}`,ts:Date.now(),name,type:wodType,content,score,photo:wodPhoto});
+    wodPhoto=null;
+    try{save()}catch(e){}
+    toast("✓ WOD 已记录");renderLog();
+  };
+  document.querySelectorAll("[data-wdel]").forEach(b=>b.onclick=()=>{
+    state.wods.splice(+b.dataset.wdel,1);save();renderLog();
+  });
+  document.querySelectorAll("[data-zoom]").forEach(img=>img.onclick=()=>{
+    img.classList.toggle("zoomed");
+  });
+};
+
+// ---- 我的页追加 AI 设置 ----
+const _renderMe=renderMe;
+renderMe=function(){
+  _renderMe();
+  const div=document.createElement("div");
+  div.innerHTML=`
+  <div class="sectionlabel">AI 接口设置</div>
+  <div class="pathcard" style="padding:16px 18px">
+    <div class="pathdesc">支持任何 OpenAI 兼容接口(DashScope / DeepSeek / Moonshot…)。白板识别需要视觉模型。Key 仅保存在本机浏览器。</div>
+    <div class="logform">
+      <input class="wodinput" id="aibase" placeholder="API Base URL" value="${esc(state.ai.base)}">
+      <input class="wodinput" id="aikey" type="password" placeholder="API Key" value="${esc(state.ai.key)}">
+      <div style="display:flex;gap:10px">
+        <input class="wodinput" id="aitm" style="flex:1" placeholder="文本模型" value="${esc(state.ai.tmodel)}">
+        <input class="wodinput" id="aivm" style="flex:1" placeholder="视觉模型" value="${esc(state.ai.vmodel)}">
+      </div>
+      <button class="logsave" id="aisave">保存设置</button>
+    </div>
+    <div class="pathdesc" style="margin:10px 0 0;font-size:12px">状态:${aiReady()?'<span style="color:var(--green)">已配置 ✓</span>':'<span style="color:var(--amber)">未配置(官方WOD抓取和术语对照不受影响)</span>'}</div>
+  </div>`;
+  root.appendChild(div);
+  $("#aisave").onclick=()=>{
+    state.ai={base:$("#aibase").value.trim(),key:$("#aikey").value.trim(),
+      tmodel:$("#aitm").value.trim()||"qwen-plus",vmodel:$("#aivm").value.trim()||"qwen-vl-max"};
+    save();toast("✓ AI 设置已保存");renderMe();
+  };
+};
+// 存储溢出保护
+const _save=save;
+save=function(){
+  if(!storageOk)return;
+  try{localStorage.setItem(KEY,JSON.stringify(state))}
+  catch(e){toast("⚠ 本地存储已满,建议删除部分旧照片记录")}
+};
+
+// ================= 扩展模块 3:举重分类 =================
+CATEGORIES.push({id:"wl",zh:"举重",en:"Weightlifting",icon:"🏋️"});
+SUBCATS.push("深蹲类","硬拉与翻铃","推举与挺","抓举类");
+
+const MOVES3=[
+// ---------- 深蹲类 ----------
+{id:"air-squat",cat:"wl",sub:"深蹲类",lvl:"L1",zh:"徒手深蹲",en:"Air Squat",
+ goal:"人类最基本的动作模式,所有杠铃深蹲与翻抓接杠的母动作。蹲不好徒手,杠铃只会放大问题。",
+ steps:["双脚约与肩同宽,脚尖微外展 10–30°,重心在全脚掌。","屈髋屈膝同时启动(想象向后坐),双臂前平举配重。","下蹲至髋低于膝(髋折痕低于膝盖顶点),膝盖方向始终对准脚尖。","脚跟踩地站起,顶端髋膝完全伸展。"],
+ cues:["全程腰背中立,胸口朝前不朝地","膝盖外推,不要内扣(膝内扣是最常见的伤膝模式)","脚跟不离地——离地说明踝关节活动度需要加练"],
+ faults:["蹲不到深度,髋高于膝就回头","重心跑到前脚掌,脚跟翘起","下背部在底部弯曲(butt wink 过大)"],
+ std:"连续 <b>30 次</b> 全深度徒手深蹲,节奏稳定、脚跟不离地、腰背中立。",
+ next:"深度与稳定都有了,把杠铃放上背——颈后深蹲。"},
+
+{id:"back-squat",cat:"wl",sub:"深蹲类",lvl:"L2",zh:"颈后深蹲",en:"Back Squat",
+ goal:"全身力量之王,负重能力最强的深蹲变式。下肢与躯干刚性的根基,几乎所有力量指标都与它相关。",
+ steps:["杠铃置于斜方肌上(高杠位)或三角肌后束上(低杠位),双手锁紧杠。","出架后退两步站定,深吸气绷紧核心(瓦式呼吸)。","控制下蹲至全深度,背角保持稳定不前倒。","脚跟发力站起,髋膝同步伸展,顶端完全锁定再呼气。"],
+ cues:["「把杠掰弯」——背阔肌收紧让杠和身体成为整体","每一次都先呼吸再下蹲,腹压是腰椎的安全带","下蹲速度可控,站起意图要快"],
+ faults:["早抬髋:站起时屁股先飞,变成早安式硬拉","核心漏气,底部躯干被压弯","深度随重量增加而缩水"],
+ std:"以标准深度完成体重 <b>1.5 倍</b>(男)/ <b>1.2 倍</b>(女)1RM,或体重重量 10 次。",
+ next:"把杠移到身体前侧——颈前深蹲,这是翻铃接杠的力量基础。"},
+
+{id:"front-squat",cat:"wl",sub:"深蹲类",lvl:"L2",zh:"颈前深蹲",en:"Front Squat",
+ goal:"杠铃架在锁骨与三角肌前束上的深蹲。逼出更直立的躯干与更强的上背,是深蹲翻和 Thruster 的直接前提。",
+ steps:["前架位(front rack):杠压在锁骨与肩窝,手指松搭杠下,手肘高抬向前。","保持手肘高度,吸气绷紧后下蹲。","全深度底部躯干尽量直立,手肘不掉。","脚跟蹬地站起,手肘持续「指向前方」。"],
+ cues:["「手肘向天花板顶」贯穿全程","杠是「架」在肩上不是「抓」在手里,手腕只是搭着","手肘一掉,杠就会把上背压圆——肘的高度等于一切"],
+ faults:["手腕死握杠,前架僵硬手肘抬不起来","底部手肘下垂,重心前倾掉杠","用宽握硬扛代替肩与腕的柔韧改善"],
+ std:"标准前架完成体重 <b>1.2 倍</b>(男)/ <b>1.0 倍</b>(女)1RM,全程肘不掉。",
+ next:"前架稳了,深蹲翻的接杠就有了着落;同时可以开始过头深蹲。"},
+
+{id:"ohs",cat:"wl",sub:"深蹲类",lvl:"L3",zh:"过头深蹲",en:"Overhead Squat",
+ goal:"杠铃锁定在头顶的全深度深蹲,全身活动度与稳定性的照妖镜。它是深蹲抓举的接杠姿势,练不好 OHS 就没有抓举。",
+ steps:["宽握(抓举握距)将杠举过头顶,杠在耳后、肩胛上回旋锁定。","主动「把杠顶高」,肩部外旋拧紧(腋窝朝前)。","保持杠在脚掌中心正上方,下蹲至全深度。","站起全程杠不漂移,顶端完全锁定。"],
+ cues:["杠的投影永远落在脚掌中心——杠往前漂一寸,难度涨一倍","「掰断杠铃」的外旋意图让肩锁定","先用 PVC 管/空杆把位置找对,再谈重量"],
+ faults:["手肘微弯「软支撑」,杠随时会塌","胸椎伸展不足,只能靠塌腰补偿","下蹲时杠前移,人杠分家"],
+ std:"以 <b>0.75 倍体重</b>(男)/ <b>0.5 倍体重</b>(女)完成 5 次全深度 OHS。",
+ next:"OHS 是抓举之路的门票——下一站力量抓举。"},
+
+// ---------- 硬拉与翻铃 ----------
+{id:"deadlift",cat:"wl",sub:"硬拉与翻铃",lvl:"L1",zh:"硬拉",en:"Deadlift",
+ goal:"从地面拿起重物——最原始也最实用的力量动作。后链(臀、腘绳、竖脊)的总教练,所有翻与抓的第一拉原型。",
+ steps:["杠贴近小腿,双脚髋宽,杠在脚掌中心上方。","屈髋下握杠(肩略前于杠),腰背锁定中立,背阔收紧。","深吸气绷紧,脚踩地「推地球」,杠贴身上升。","杠过膝后髋部前送锁定,肩髋膝成一条直线;原路控制放下。"],
+ cues:["「先把杠拉紧再拉离地」——消除松弛(take the slack out)","杠轨迹是垂直直线,贴着腿走","锁定靠夹臀伸髋,不是向后仰腰"],
+ faults:["圆背起拉,腰椎代偿","杠离身体太远,力臂暴增","顶端过度后仰「炫耀式锁定」"],
+ std:"标准完成体重 <b>2 倍</b>(男)/ <b>1.5 倍</b>(女)1RM,全程背部中立。",
+ next:"硬拉建立第一拉,接下来给它加速度——悬垂高翻。"},
+
+{id:"hang-power-clean",cat:"wl",sub:"硬拉与翻铃",lvl:"L2",zh:"悬垂高翻",en:"Hang Power Clean",
+ goal:"从膝上悬垂位起拉的高翻,砍掉地面拉的复杂度,专注学习「三关节爆发伸展 + 快速接杠」这一核心环节。",
+ steps:["硬拉到站立,再屈髋下放杠至膝上(悬垂位),肩在杠前,重心脚掌中心。","爆发伸髋伸膝伸踝(triple extension),杠贴身向上加速。","耸肩带肘,身体快速下沉,手肘极速翻转到前架位。","以四分之一蹲深度接杠,站直完成。"],
+ cues:["「跳起来再钻下去」——先全力伸展,再主动下沉","手臂是绳子不是发动机,弯肘越晚越好","接杠瞬间手肘抢位:肘到位=杠安全"],
+ faults:["用手臂「捞」杠上来,没有髋爆发","身体不下沉,硬靠拉高接杠(反向硬拉式翻铃)","接杠时手肘低垂,杠砸手腕"],
+ std:"以 <b>0.75 倍体重</b> 完成 3 次干净的悬垂高翻,接杠肘位标准。",
+ next:"加上地面起拉的完整版——高翻 Power Clean。"},
+
+{id:"power-clean",cat:"wl",sub:"硬拉与翻铃",lvl:"L2",zh:"高翻",en:"Power Clean",
+ goal:"从地面到肩上的完整爆发动作。CrossFit 出现频率最高的杠铃动作之一,力量与速度的乘积。",
+ steps:["硬拉式起始,第一拉:匀速将杠拉离地至膝上,背角不变。","第二拉:杠过膝后爆发伸髋,杠贴大腿向上加速(发力点)。","三伸展末端耸肩带肘,身体下沉转肘接前架。","四分之一蹲接杠(髋高于膝即为 power),站直锁定。"],
+ cues:["第一拉慢而紧,第二拉快而狠——节奏是「拉—炸」","杠擦着大腿走,远离身体的翻铃都是失败的翻铃","越重越要相信下沉,不要跟杠比谁拉得高"],
+ faults:["起拉瞬间屁股先弹起,第二拉没了角度","杠绕弧线前抛,人去追杠","早弯臂,把爆发力锁在了手肘里"],
+ std:"完成体重 <b>1 倍</b>(男)/ <b>0.75 倍</b>(女)高翻 1 次。",
+ next:"接杠深度往下走——深蹲翻让你用同样的爆发翻起更大的重量。"},
+
+{id:"squat-clean",cat:"wl",sub:"硬拉与翻铃",lvl:"L3",zh:"深蹲翻",en:"Squat Clean",
+ goal:"以全深度前蹲接杠的翻铃。下沉幅度换重量上限,是举重「翻」的完整体,也是 Grace、DT 等经典 WOD 的效率密码。",
+ steps:["起拉与第二拉同高翻,爆发伸展到位。","发力后果断「钻」到杠下,以完整前蹲底部接杠。","接杠瞬间手肘高位、核心绷紧,吸收杠的下落动能。","从前蹲底部站起,完成动作。"],
+ cues:["接得越低,需要拉的高度越少——这是深蹲翻的全部意义","底部接杠 = 颈前深蹲底部 + 爆发后的身体,前蹲不牢一切免谈","接杠瞬间「迎着杠」收紧,软着接必被压垮"],
+ faults:["爆发不充分就提前下钻,杠没高度","接杠后在底部弹跳失稳,核心没锁住","重量一上来就退化成高翻+半蹲"],
+ std:"完成体重 <b>1.2 倍</b>(男)/ <b>0.9 倍</b>(女)深蹲翻 1 次。",
+ next:"翻起来之后送上头顶——翻挺 Clean & Jerk,举重两项之一。"},
+
+{id:"clean-jerk",cat:"wl",sub:"硬拉与翻铃",lvl:"L3",zh:"翻挺",en:"Clean & Jerk",
+ goal:"奥林匹克举重两项之一:深蹲翻 + 挺举的组合,从地面到头顶的完整链路,人体能举起最大重量的方式。",
+ steps:["深蹲翻完成,站直调整呼吸,杠在前架位。","浅蹲下沉(dip):躯干垂直下沉 8–12cm,脚跟不离地。","急停反弹爆发蹬腿(drive),把杠弹射向上。","杠上升的同时人下沉分腿(或半蹲)接杠,手肘锁死,收脚站直。"],
+ cues:["dip 必须垂直——前倾一度,杠飞前方一寸","「腿把杠扔上去,手只负责锁住」","翻和挺之间允许站稳呼吸,不要急"],
+ faults:["dip 时重心前倾到脚尖","用手臂推杠代替腿部驱动(推举化的挺)","接杠手肘软,头顶位置不在耳后"],
+ std:"完成体重 <b>1 倍</b>(男)/ <b>0.75 倍</b>(女)翻挺 1 次。",
+ next:"翻铃之路登顶。横向打磨分腿挺技术,或转战抓举之路。"},
+
+// ---------- 推举与挺 ----------
+{id:"strict-press",cat:"wl",sub:"推举与挺",lvl:"L1",zh:"实力推举",en:"Strict Press",
+ goal:"纯上肢的垂直推,不借任何腿力。肩部绝对力量的标尺,是所有借力推与挺的力量来源。",
+ steps:["前架位起始,双脚髋宽,夹臀收腹锁住躯干。","头微后让出杠的路线,杠贴脸垂直向上推。","杠过头后头「穿回」杠下,身体回到杠的正下方。","顶端完全锁定:杠、肩、髋、踝一条垂直线,耳朵在大臂前侧露出。"],
+ cues:["杠走直线,人给杠让路(不是杠绕人)","顶端「耸肩顶杠」,肩胛上回旋参与锁定","臀腿像石头一样不动——动了就不是 strict"],
+ faults:["腰部后仰把胸当斜板,腰椎代偿","杠绕脸画弧,力线偏前","锁定不充分,手肘留一丝弯"],
+ std:"完成体重 <b>0.75 倍</b>(男)/ <b>0.5 倍</b>(女)实力推举 1 次。",
+ next:"加入腿部驱动——借力推举,重量立刻上一个台阶。"},
+
+{id:"push-press",cat:"wl",sub:"推举与挺",lvl:"L2",zh:"借力推举",en:"Push Press",
+ goal:"用浅蹲反弹的腿部动能启动推举,可举起比 strict press 重 30% 的重量,是发力时序(腿→核心→臂)的入门课。",
+ steps:["前架位,躯干垂直浅蹲下沉(dip)。","急停反弹,爆发蹬腿把动能传给杠。","杠获得初速后手臂接力推到锁定。","顶端与 strict press 相同:垂直线锁定。"],
+ cues:["dip-drive 是一个连贯的「弹簧」,中间不能停顿","下沉浅而快(膝前送、躯干垂直),不是做半蹲","腿的功劳越大,手臂越省——感觉杠「自己飞起来」才对"],
+ faults:["dip 前倾,杠被甩向前方","下沉太深太慢,弹性能量耗散","蹬腿与推臂脱节,变成两个动作"],
+ std:"完成体重 <b>0.9 倍</b>(男)/ <b>0.65 倍</b>(女)借力推举 1 次。",
+ next:"学会「推完人下沉」——借力挺,推与挺的分水岭。"},
+
+{id:"push-jerk",cat:"wl",sub:"推举与挺",lvl:"L2",zh:"借力挺",en:"Push Jerk",
+ goal:"蹬腿驱动后身体主动二次下沉,在杠的下方接锁定。比 push press 更重、更省力,是 HSPU 之外肩上过头的主力。",
+ steps:["dip-drive 与借力推举完全相同。","杠飞起的瞬间,双脚轻跳微开,身体「二次下沉」到四分之一蹲。","在下沉中手臂完成锁定——是「钻到杠下」而非「推到顶」。","锁定后站直,收脚完成。"],
+ cues:["分辨标准:push press 是手臂推到顶,push jerk 是人沉到杠下锁定","「蹬完就钻」,等杠落下来再锁就晚了","接杠位置:杠在耳后、肩胛上回旋,与 OHS 顶端一致"],
+ faults:["不下沉,做成了重一点的 push press","二次下沉时杠在头前方,锁定位偏前","脚跳得太宽,接杠后站不直"],
+ std:"完成体重 <b>1 倍</b>(男)/ <b>0.75 倍</b>(女)借力挺 1 次。",
+ next:"接杠再低一点、再稳一点——分腿挺,挺举的最终形态。"},
+
+{id:"split-jerk",cat:"wl",sub:"推举与挺",lvl:"L3",zh:"分腿挺",en:"Split Jerk",
+ goal:"前后分腿接杠的挺举,支撑面最大、可控重量最高的过头方式,奥举运动员的标准选择。",
+ steps:["dip-drive 同前,爆发蹬腿。","杠飞起瞬间前后分腿:前脚向前一脚掌踏实,后脚向后蹬出、脚跟离地。","在分腿下沉中锁定杠,杠、髋落在前后脚之间的中点正上方。","收腿:先收前脚半步,再收后脚,站直完成。"],
+ cues:["分腿是「向下劈」不是「向前跳」,头顶高度应该下降","前小腿垂直、后膝微弯——前后脚各承担一半","每天空杆分腿落位 20 次,脚感是练出来的"],
+ faults:["分腿太窄,等于站着接","重心偏向前腿,杠在身前晃","收腿顺序反了或一步并回,失去平衡"],
+ std:"完成体重 <b>1.1 倍</b>(男)/ <b>0.8 倍</b>(女)分腿挺 1 次,落位一致。",
+ next:"推举与挺满级。与深蹲翻组合,就是完整的翻挺。"},
+
+{id:"thruster",cat:"wl",sub:"推举与挺",lvl:"L3",zh:"颈前蹲推",en:"Thruster",
+ goal:"前蹲 + 借力推举无缝衔接,CrossFit 最臭名昭著也最高效的全身动作(Fran 的主角)。心肺与力量的双重绞肉机。",
+ steps:["前架位下蹲至全深度。","站起加速,利用站起的动能直接把杠推向头顶。","蹲起与上推之间没有停顿——动能一路传到杠上。","头顶锁定后直接下落回前架,接着进入下一次深蹲。"],
+ cues:["「蹲起就是推举的 dip-drive」,把两个动作焊成一个","下落的杠用前架去「接住缓冲」,顺势压入下一蹲","大组数时呼吸卡在头顶锁定瞬间,一次一口"],
+ faults:["蹲起到顶停一下再推,动能断档","前架手肘低,蹲到底杠压胸","头顶不锁直就急着进下一次"],
+ std:"以 <b>43/30kg</b>(男/女,Fran 处方重量)连续完成 15 次不落杠。",
+ next:"恭喜获得 Fran 入场券。配合引体向上,去挑战 21-15-9。"},
+
+// ---------- 抓举类 ----------
+{id:"power-snatch",cat:"wl",sub:"抓举类",lvl:"L3",zh:"力量抓举",en:"Power Snatch",
+ goal:"一次动作把杠从地面送到头顶锁定,以高于平行蹲的深度接杠。速度、时序与精度的极限测试。",
+ steps:["宽握起始(杠在髋折处的握距),背紧臂直。","第一拉匀速过膝,第二拉杠贴髋爆发伸展。","耸肩带肘,杠沿身体近距上升,身体下沉。","以四分之一蹲在头顶锁定接杠(OHS 顶端位置),站直。"],
+ cues:["宽握让发力点更高(髋部),让杠「贴髋起爆」","「砸向天花板」——抓举锁定是主动向上顶,不是被动等杠停","杠的全程轨迹贴近身体呈轻微 S 形,不是抡圆"],
+ faults:["杠离髋太远,第二拉变成甩臂","锁定瞬间手肘软,杠在头顶晃","害怕杠在头后,接杠位置偏前"],
+ std:"完成体重 <b>0.75 倍</b>(男)/ <b>0.55 倍</b>(女)力量抓举 1 次。",
+ next:"OHS 深度足够后,进入终极动作——深蹲抓举。"},
+
+{id:"squat-snatch",cat:"wl",sub:"抓举类",lvl:"L4",zh:"深蹲抓举",en:"Squat Snatch",
+ goal:"以全深度过头深蹲接杠的抓举——公认的「最难的杠铃动作」:全身力量、速度、柔韧、平衡、精度一个都不能少。",
+ steps:["起拉与第二拉同力量抓举,爆发更充分。","发力后果断下钻,以完整 OHS 底部接杠。","底部:杠锁定在耳后正上方,躯干尽量直立,稳住。","从过头深蹲底部站起完成。"],
+ cues:["「接杠 = 在 OHS 底部突然出现」,OHS 是入场资格不是装饰","空杆与轻重量上万次重复,神经轨迹是抓举的真正壁垒","底部不稳就停在底部多呆 2 秒,逼平衡系统适应"],
+ faults:["不敢下钻,永远 power 接,重量到顶就失败","底部杠前后晃,核心和肩没有同时锁","柔韧不足靠垫脚跟硬蹲"],
+ std:"完成体重 <b>1 倍</b>(男)/ <b>0.75 倍</b>(女)深蹲抓举 1 次。",
+ next:"杠铃技能树满级。从这里开始,是举重专项的星辰大海。"},
+];
+
+// 注册进系统
+MOVES3.forEach(m=>{ALL.push(m);byId[m.id]=m});
+
+// 进阶路径
+PATHS.push(
+ {zh:"深蹲之路",en:"Squat Line",desc:"从徒手到杠铃、从背到胸到头顶——支撑位置越高,对身体的要求越苛刻。",
+  chain:["air-squat","back-squat","front-squat","ohs"]},
+ {zh:"翻铃之路",en:"Clean Line",desc:"先用硬拉学会从地面拉起,再一步步加上爆发、下沉与接杠,直到完整翻挺。",
+  chain:["deadlift","hang-power-clean","power-clean","squat-clean","clean-jerk"]},
+ {zh:"推举之路",en:"Press Line",desc:"从纯手臂到腿驱动再到钻杠下,重量随技术层层解锁。",
+  chain:["strict-press","push-press","push-jerk","split-jerk"]},
+ {zh:"抓举之路",en:"Snatch Line",desc:"过头深蹲是门票,力量抓举是练习曲,深蹲抓举是终章。",
+  chain:["ohs","power-snatch","squat-snatch"]},
+ {zh:"Thruster 支线",en:"Thruster Branch",desc:"前蹲与推举焊成一个动作,Fran 在终点等你。",
+  chain:["front-squat","thruster"]},
+);
+
+// 新成就
+BADGES.push(
+ {id:"squat-done",ic:"🦵",nm:"深蹲王",cond:"深蹲类全部掌握",test:s=>subDone(s,"深蹲类")},
+ {id:"clean-done",ic:"💥",nm:"翻铃手",cond:"硬拉与翻铃全掌握",test:s=>subDone(s,"硬拉与翻铃")},
+ {id:"press-done",ic:"🗼",nm:"推举机",cond:"推举与挺全掌握",test:s=>subDone(s,"推举与挺")},
+ {id:"snatch-done",ic:"🌟",nm:"抓举家",cond:"抓举类全部掌握",test:s=>subDone(s,"抓举类")},
+ {id:"all-done",ic:"🏆",nm:"全树通关",cond:"掌握全部动作",test:s=>ALL.every(m=>s.status[m.id]==="mastered")},
+);
+
+// ---------- 举重动作动画(bb:true 表示手持杠铃,杠铃片跟随手部) ----------
+Object.assign(ILLUS,{
+"air-squat":{props:[["floor"]],dur:1600,
+ A:{head:[100,40],sh:[100,50],el:[92,62],ha:[84,70],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ B:{head:[90,62],sh:[92,72],el:[78,70],ha:[64,68],hip:[108,100],kn:[88,102],an:[92,128],toe:[84,130]},
+ cap:"髋低于膝 · 膝盖对准脚尖"},
+"back-squat":{props:[["floor"]],dur:1800,bb:true,
+ A:{head:[97,42],sh:[100,52],el:[107,62],ha:[96,49],hip:[100,88],kn:[100,110],an:[100,128],toe:[92,130]},
+ B:{head:[90,66],sh:[94,76],el:[102,84],ha:[90,73],hip:[105,102],kn:[86,104],an:[92,128],toe:[84,130]},
+ cap:"杠在背上 · 背角稳定全深度"},
+"front-squat":{props:[["floor"]],dur:1800,bb:true,
+ A:{head:[98,42],sh:[100,52],el:[85,58],ha:[91,49],hip:[100,88],kn:[100,110],an:[100,128],toe:[92,130]},
+ B:{head:[92,66],sh:[96,76],el:[81,80],ha:[87,72],hip:[104,102],kn:[85,104],an:[92,128],toe:[84,130]},
+ cap:"手肘向前顶高 · 躯干直立"},
+"ohs":{props:[["floor"]],dur:2000,bb:true,
+ A:{head:[95,40],sh:[100,48],el:[98,32],ha:[96,17],hip:[100,84],kn:[100,108],an:[100,128],toe:[92,130]},
+ B:{head:[89,66],sh:[94,72],el:[92,48],ha:[90,26],hip:[103,100],kn:[84,102],an:[92,128],toe:[84,130]},
+ cap:"杠在脚掌中心正上方 · 全程不漂移"},
+"deadlift":{props:[["floor"]],dur:1800,bb:true,
+ A:{head:[83,60],sh:[88,70],el:[87,94],ha:[86,118],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},
+ B:{head:[98,42],sh:[100,52],el:[100,68],ha:[100,84],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},
+ cap:"杠贴身直线上升 · 夹臀锁定"},
+"hang-power-clean":{props:[["floor"]],dur:1500,bb:true,
+ A:{head:[87,57],sh:[92,66],el:[92,85],ha:[92,104],hip:[108,82],kn:[100,106],an:[96,128],toe:[88,130]},
+ B:{head:[96,48],sh:[99,58],el:[84,64],ha:[90,54],hip:[103,92],kn:[94,106],an:[96,128],toe:[88,130]},
+ cap:"爆发伸髋 · 翻肘接前架"},
+"power-clean":{props:[["floor"]],dur:1700,bb:true,
+ A:{head:[83,60],sh:[88,70],el:[87,94],ha:[86,118],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},
+ B:{head:[96,48],sh:[99,58],el:[84,64],ha:[90,54],hip:[103,92],kn:[94,106],an:[96,128],toe:[88,130]},
+ cap:"第一拉慢而紧 · 第二拉快而狠"},
+"squat-clean":{props:[["floor"]],dur:1800,bb:true,
+ A:{head:[83,60],sh:[88,70],el:[87,94],ha:[86,118],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},
+ B:{head:[93,68],sh:[96,78],el:[81,82],ha:[88,74],hip:[104,103],kn:[85,105],an:[92,128],toe:[84,130]},
+ cap:"爆发后下钻 · 前蹲底部接杠"},
+"clean-jerk":{props:[["floor"]],dur:2000,bb:true,
+ A:{head:[98,42],sh:[100,52],el:[85,58],ha:[91,49],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},
+ B:{head:[93,38],sh:[98,46],el:[96,30],ha:[94,15],hip:[100,82],kn:[86,98],an:[80,124],toe:[72,128]},
+ cap:"腿把杠扔上去 · 分腿钻到杠下"},
+"strict-press":{props:[["floor"]],dur:1700,bb:true,
+ A:{head:[99,40],sh:[100,52],el:[91,60],ha:[94,48],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ B:{head:[96,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ cap:"杠走直线 · 臀腿纹丝不动"},
+"push-press":{props:[["floor"]],dur:1400,bb:true,
+ A:{head:[98,46],sh:[100,58],el:[91,66],ha:[94,54],hip:[100,92],kn:[97,108],an:[100,128],toe:[92,130]},
+ B:{head:[96,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ cap:"浅蹲急停反弹 · 腿给杠初速"},
+"push-jerk":{props:[["floor"]],dur:1400,bb:true,
+ A:{head:[98,46],sh:[100,58],el:[91,66],ha:[94,54],hip:[100,92],kn:[97,108],an:[100,128],toe:[92,130]},
+ B:{head:[96,44],sh:[100,50],el:[97,33],ha:[96,19],hip:[101,90],kn:[95,106],an:[100,128],toe:[92,130]},
+ cap:"蹬完就钻 · 在杠下完成锁定"},
+"split-jerk":{props:[["floor"]],dur:1600,bb:true,
+ A:{head:[98,46],sh:[100,58],el:[91,66],ha:[94,54],hip:[100,92],kn:[97,108],an:[100,128],toe:[92,130]},
+ B:{head:[94,40],sh:[98,46],el:[96,29],ha:[95,15],hip:[100,82],kn:[84,100],an:[78,126],toe:[70,128]},
+ cap:"向下劈开分腿 · 杠落两脚中点上方"},
+"thruster":{props:[["floor"]],dur:1500,bb:true,
+ A:{head:[92,66],sh:[96,76],el:[81,80],ha:[87,72],hip:[104,102],kn:[85,104],an:[92,128],toe:[84,130]},
+ B:{head:[96,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ cap:"蹲起动能直通头顶 · 中间不停顿"},
+"power-snatch":{props:[["floor"]],dur:1600,bb:true,
+ A:{head:[85,58],sh:[90,68],el:[89,92],ha:[88,116],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},
+ B:{head:[94,44],sh:[98,50],el:[95,32],ha:[94,16],hip:[102,92],kn:[94,106],an:[96,128],toe:[88,130]},
+ cap:"杠贴髋起爆 · 一步到头顶锁定"},
+"squat-snatch":{props:[["floor"]],dur:1800,bb:true,
+ A:{head:[85,58],sh:[90,68],el:[89,92],ha:[88,116],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},
+ B:{head:[91,64],sh:[96,72],el:[93,46],ha:[90,22],hip:[103,101],kn:[85,103],an:[92,128],toe:[84,130]},
+ cap:"下钻到 OHS 底部接杠 · 最难的杠铃动作"},
+});
+
+// ---------- 渲染器扩展:杠铃片跟随手部 ----------
+let curBB=false;
+const _illusSVG2=illusSVG;
+illusSVG=function(id){
+  let s=_illusSVG2(id);
+  if(ILLUS[id]&&ILLUS[id].bb){
+    s=s.replace('<circle id="f-grip"',
+      '<circle id="f-plate" r="11" class="ifp"/><circle id="f-axle" r="3" class="ifp2"/><circle id="f-grip"');
+  }
+  return s;
+};
+const _startIllus2=startIllus;
+startIllus=function(id){
+  curBB=!!(ILLUS[id]&&ILLUS[id].bb);
+  _startIllus2(id);
+  if(curBB){
+    const gh=document.getElementById("ghostg");
+    if(gh){const A=ILLUS[id].A;gh.innerHTML+=`<circle class="ifp" cx="${A.ha[0]}" cy="${A.ha[1]}" r="11"/>`}
+  }
+};
+const _drawPose2=drawPose;
+drawPose=function(A,B,t){
+  const ok=_drawPose2(A,B,t);
+  if(ok&&curBB){
+    const p=document.getElementById("f-plate"),ax=document.getElementById("f-axle"),g=document.getElementById("f-grip");
+    if(p&&g){
+      const x=g.getAttribute("cx"),y=g.getAttribute("cy");
+      p.setAttribute("cx",x);p.setAttribute("cy",y);
+      ax.setAttribute("cx",x);ax.setAttribute("cy",y);
+    }
+  }
+  return ok;
+};
+
+// ================= 扩展模块 4:体能与单项 =================
+CATEGORIES.push({id:"mono",zh:"体能与单项",en:"Conditioning & Skills",icon:"🔥"});
+SUBCATS.push("跳绳类","壶铃与药球","体能综合","攀爬类","器械有氧");
+
+const MOVES4=[
+// ---------- 跳绳类 ----------
+{id:"single-under",cat:"mono",sub:"跳绳类",lvl:"L1",zh:"单摇跳绳",en:"Single-Under",
+ goal:"跳绳的节奏地基。手腕驱动与小幅弹跳的协调模式,单摇不轻松,双摇必挣扎。",
+ steps:["绳长校验:单脚踩绳,手柄拉至腋下高度。","手肘贴近身体,手腕(不是手臂)画小圈摇绳。","前脚掌起跳 2–4cm,落地轻巧有弹性,膝盖微弯缓冲。","目视前方,保持身体直立,找到「绳到脚到」的节拍。"],
+ cues:["跳得低、摇得稳——高度是双摇的,不是单摇的","手臂大抡 = 绳圈变形 = 绊绳的根源","用耳朵听绳子击地声校准节奏"],
+ faults:["双脚后勾或屈膝收腿跳,落地沉重","手越摇越开,绳越来越短","盯着脚看,身体前倾"],
+ std:"连续 <b>100 次</b> 不断绳,节奏均匀、落点轻巧。",
+ next:"节奏稳定后,提高摇绳手速——进军双摇。"},
+
+{id:"double-under",cat:"mono",sub:"跳绳类",lvl:"L2",zh:"双摇跳绳",en:"Double-Under",
+ goal:"一跳两摇,CrossFit WOD 的标配技能。本质是「跳得稍高一点 + 手腕快一倍」,而不是疯狂乱跳。",
+ steps:["先做几个单摇建立节奏。","起跳略高(8–12cm),空中手腕加速摇两圈。","落地立即衔接,身体姿态与单摇完全一致。","练习序列:单单双 → 单双单双 → 连续双摇。"],
+ cues:["「跳高 20%,手快 100%」——主要变量是手腕不是腿","身体保持铅笔一样直,折叠就乱","失败后别急着甩鞭子抽自己,停 2 秒重建节奏再来"],
+ faults:["海豚跳/收腿跳,空中姿态崩坏","手臂越打越开,绳子越来越够不着","越急越快,节奏崩了硬冲"],
+ std:"连续 <b>50 次</b> 不断绳双摇。",
+ next:"双摇自由后,玩点花的——交叉双摇,或直接挑战三摇。"},
+
+{id:"crossover-under",cat:"mono",sub:"跳绳类",lvl:"L3",zh:"交叉跳绳",en:"Crossover",
+ goal:"摇绳中双臂交叉再打开,节奏控制与空间感的进阶玩法,2023 年起进入 CrossFit Games 体系。",
+ steps:["单摇节奏中,绳过头顶下落瞬间双臂在体前交叉。","交叉时双手越过身体中线,手腕继续驱动绳子。","绳从交叉的绳圈中过脚,下一拍双臂自然打开。","先练「交叉-打开」交替,再练连续交叉。"],
+ cues:["交叉的是手腕位置,肩膀不耸不晃","交叉幅度要过中线足够多,绳圈才够大","节奏感先行:跟着拍子交叉,而不是看绳子"],
+ faults:["交叉太浅,绳圈过小绊脚","上半身跟着拧转,重心乱晃","只会交叉进不会打开出"],
+ std:"连续 <b>20 次</b> 交替交叉跳(交叉-打开为一次)。",
+ next:"手腕控制力已是高手,三摇只差爆发节奏。"},
+
+{id:"triple-under",cat:"mono",sub:"跳绳类",lvl:"L4",zh:"三摇跳绳",en:"Triple-Under",
+ goal:"一跳三摇,跳绳技能天花板。对弹跳高度、手腕极速与空中身体控制的三重考验。",
+ steps:["从高质量双摇起手,确认身体直、落点稳。","起跳显著加高(15–20cm),前脚掌全力蹬地。","空中手腕以极限速度完成三圈,前两圈要快,第三圈收尾。","落地缓冲后立刻评估:节奏在就继续,乱了就重置。"],
+ cues:["先练「双摇+高跳」找滞空感,再加第三圈","握柄更轻、圈更小,速度才上得去","三摇是爆发动作,按组练(3–5次/组),不追长串"],
+ faults:["跳高了但身体后仰或折叠","第三圈手腕没跟上,绳打脚踝","连续失败仍硬试,动作模式越练越歪"],
+ std:"完成 <b>5 次</b> 连续三摇。",
+ next:"跳绳满级。可以追求双摇大串(100+)或交叉三摇的极限玩法。"},
+
+// ---------- 壶铃与药球 ----------
+{id:"goblet-squat",cat:"mono",sub:"壶铃与药球",lvl:"L1",zh:"高脚杯深蹲",en:"Goblet Squat",
+ goal:"胸前捧壶铃的深蹲,前侧负重天然帮你保持躯干直立——学深蹲模式的最佳负重入门。",
+ steps:["双手捧住壶铃底座(像捧高脚杯),贴在胸前。","手肘下沉指向地面,大臂贴住身体。","全深度下蹲,手肘从双膝之间下落,膝盖外推。","脚跟踩地站起,壶铃全程贴胸不离身。"],
+ cues:["底部手肘轻触膝盖内侧,正好提示膝外推","负重在前,身体会自动学会直立——感受这个反馈","底部停 2 秒,把深蹲底部变成舒适区"],
+ faults:["壶铃离胸,变成前平举耗竭手臂","脚跟离地重心前冲","低头看地,上背跟着圆"],
+ std:"用 <b>24/16kg</b>(男/女)完成 3 组 × 12 次全深度高脚杯深蹲。",
+ next:"深蹲模式定型,开始学壶铃的灵魂动作——摆动。"},
+
+{id:"russian-swing",cat:"mono",sub:"壶铃与药球",lvl:"L1",zh:"俄式壶铃摆动",en:"Russian KB Swing",
+ goal:"髋部铰链 + 爆发伸髋的最佳教学动作,摆至胸口高度。后链动力链的发动机,所有摆类动作的根。",
+ steps:["壶铃放在身前一脚距离,屈髋俯身双手抓柄。","后拉启动:把壶铃像开球一样甩到双腿之间大腿根部。","爆发伸髋夹臀,用髋部把壶铃「弹」到胸口高度。","壶铃自由下落,顺势回到腿间,髋部再次折叠蓄力。"],
+ cues:["这是髋铰链不是深蹲——膝盖只微弯,屁股向后送","手臂是吊索,壶铃的高度 100% 来自髋的爆发","顶端身体成站立平板:夹臀、收腹、肋骨下收"],
+ faults:["用手臂往上抡,肩部很快烧没","蹲着摆(膝主导),后链没参与","壶铃落得太低砸向膝盖,应该掠过大腿根"],
+ std:"用 <b>24/16kg</b> 连续 20 次标准俄式摆,顶端身体直线。",
+ next:"髋部爆发到位后,让壶铃飞过头顶——美式摆动。"},
+
+{id:"american-swing",cat:"mono",sub:"壶铃与药球",lvl:"L2",zh:"美式壶铃摆动",en:"American KB Swing",
+ goal:"摆至头顶正上方锁定的完整版摆动,CrossFit 计次标准。更大的动程,要求肩部活动度兜底。",
+ steps:["前半程与俄式完全相同:铰链—爆发。","伸髋后让壶铃延续轨迹继续上升过头。","顶点:壶铃底朝天,手臂在耳侧垂直锁定,身体直线。","控制下落轨迹贴近身体,回到腿间循环。"],
+ cues:["仍然是髋的功劳——不是俄式摆完再用肩举一下","顶点壶铃、手腕、手肘一条线,腕不折","肩活动度不足者先解决过头位,不要塌腰硬代偿"],
+ faults:["腰部反弓把壶铃「顶」过头","顶点壶铃前后晃,核心没锁","下落阶段远离身体画大弧,腰部承压"],
+ std:"用 <b>24/16kg</b> 连续 20 次过头锁定的美式摆。",
+ next:"摆动已成,挑战壶铃的王者动作——土耳其起立。"},
+
+{id:"wall-ball-shot",cat:"mono",sub:"壶铃与药球",lvl:"L2",zh:"药球抛墙",en:"Wall Ball Shot",
+ goal:"前蹲 + 向上抛投的循环,Karen(150 次)的全部内容。下肢动能传递到投掷的全身协调动作。",
+ steps:["持球于下巴前(指尖托球,手肘下沉),面墙约一臂距离。","全深度下蹲,球贴身。","蹲起加速,动能顺着身体传到手臂,把球抛向墙上目标(男 3.05m / 女 2.74m)。","接球时顺势下沉缓冲,直接进入下一次深蹲。"],
+ cues:["和 Thruster 同源:蹲起就是投掷的发力,手臂只是末端","接球即下蹲——接和蹲是同一个动作","目光锁定目标点,球走直线上下"],
+ faults:["蹲一半就抛,深度不够 no-rep","用手臂硬扔,三角肌两分钟报废","接球站直了再蹲,白白多扛一次重力"],
+ std:"用 <b>9/6kg</b> 药球连续 25 次触标准高度目标。",
+ next:"配合 Thruster 的节奏理解,去会一会 Karen。"},
+
+{id:"tgu",cat:"mono",sub:"壶铃与药球",lvl:"L3",zh:"土耳其起立",en:"Turkish Get-up",
+ goal:"举着壶铃从躺到站再躺回——一个动作串起肩稳定、核心、髋活动度与全身协调,被称为「一个动作的体检」。",
+ steps:["仰卧,单手垂直举铃锁定,同侧膝弯曲踩地,对侧手脚 45° 展开。","压肘起身→撑手坐高:眼睛始终看铃,铃臂永远垂直地面。","抬髋成桥→对侧腿后穿成半跪。","躯干立直,半跪站起;再按完全相反的顺序回到仰卧。"],
+ cues:["「铃臂垂直」是全程唯一不变量,其他都围绕它调整","每个分解位都能停 3 秒,停不住就是还没掌握","先用鞋/轻铃学流程,流程刻进身体再加重"],
+ faults:["眼睛不看铃,头顶重物失去监控","跳步骤,从坐姿直接硬撅站起","肩部松懈,铃臂弯曲或倾斜"],
+ std:"左右各完成 <b>24/16kg</b> 土耳其起立 1 次,全程分解位清晰。",
+ next:"壶铃与药球满级。壶铃抓举、壶铃风车是延伸方向。"},
+
+// ---------- 体能综合 ----------
+{id:"burpee",cat:"mono",sub:"体能综合",lvl:"L1",zh:"波比跳",en:"Burpee",
+ goal:"趴下再跳起——最朴素也最残忍的全身代谢动作,不需要任何器械就能把心率拉满。",
+ steps:["站立下蹲,双手撑地。","双脚后跳成俯撑,胸和大腿触地。","推起的同时双脚前跳回到蹲位。","起身跳起,空中双手过头击掌(或触标准高度)。"],
+ cues:["大组数时用「身体波浪」省力:推地与跳脚连成一个波","节奏恒定 > 开局冲刺,波比跳是配速教学大师","落地即下一次的开始,消灭中间的站立犹豫"],
+ faults:["塌腰摔落地面,腰椎受冲击","跳回时脚太靠后,起身费力","顶端不伸髋不击掌,偷工减料"],
+ std:"<b>5 分钟内完成 50 次</b>标准波比跳。",
+ next:"无器械引擎已点火,配合跳箱与药球构建完整代谢能力。"},
+
+{id:"box-jump",cat:"mono",sub:"体能综合",lvl:"L2",zh:"跳箱",en:"Box Jump",
+ goal:"下肢爆发力与落地控制的双重训练。重点不是跳多高,而是每一次都轻、稳、可重复。",
+ steps:["面对箱子(标准 24/20 英寸)一小步距离站立。","摆臂下蹲蓄力,双脚同时起跳。","空中收髋提膝,双脚全掌落上箱面。","箱上完全站直(髋膝伸展),走下或跳下,跳下时屈膝缓冲。"],
+ cues:["落箱要「猫一样轻」——声音越小,控制越好","视线看箱面目标点,不看脚","疲劳时改 step-down 下箱,跟腱断裂大多发生在反弹跳下"],
+ faults:["落点只有前脚掌一半,脚跟悬空打滑","箱上不站直就跳下,no-rep","过度依赖反弹式连续跳,跟腱风险累积"],
+ std:"标准箱高连续 <b>20 次</b>,每次箱上站直、落地轻稳。",
+ next:"爆发与落地都稳了,可挑战更高箱或交替触跳。"},
+
+{id:"walking-lunge",cat:"mono",sub:"体能综合",lvl:"L1",zh:"行走弓步",en:"Walking Lunge",
+ goal:"单边下肢力量与骨盆稳定的基础动作,矫正左右失衡,是 Pistol 与负重弓步的前置。",
+ steps:["站立,向前迈出一大步。","垂直下沉:后膝轻触地面(或离地一拳),前小腿垂直。","前脚跟发力站起,后腿顺势向前迈出下一步。","躯干全程直立,骨盆水平不歪斜。"],
+ cues:["是「向下坐电梯」不是「向前冲刺」——重心垂直升降","步幅够大,前膝才不会冲过脚尖","推起靠前腿,后腿只是辅助"],
+ faults:["步幅太小,前膝大幅前移","躯干前扑,用惯性带起身","骨盆左右摇摆,核心放假"],
+ std:"连续 <b>20 步</b>(每侧 10)标准行走弓步,后膝每次轻触地。",
+ next:"单边力量上路,目标单腿深蹲 Pistol。"},
+
+{id:"pistol",cat:"mono",sub:"体能综合",lvl:"L3",zh:"单腿深蹲",en:"Pistol Squat",
+ goal:"单腿全深度蹲起,另一腿前伸悬空。单边力量、踝关节活动度与平衡的三合一考题。",
+ steps:["单腿站立,另一腿前伸,双臂前平举配重。","支撑腿控制下蹲,悬空腿保持离地伸直。","降至臀触小腿的全深度,短暂控制。","支撑腿脚跟踩地站起,全程悬空脚不触地。"],
+ cues:["踝活动度是第一道门:脚跟踩不住就先垫小片/拉伸小腿","下得越慢越稳——离心控制是 Pistol 的一半","抓住前伸腿的脚尖(辅助版)是极好的过渡练习"],
+ faults:["脚跟离地,靠脚尖摇晃硬撑","悬空腿点地借力","快速砸到底部靠反弹起身,膝盖受冲击"],
+ std:"左右腿各连续 <b>5 次</b> 标准 Pistol。",
+ next:"单边能力满格,可以加负重(高脚杯式 Pistol)继续进阶。"},
+
+{id:"ghd-situp",cat:"mono",sub:"体能综合",lvl:"L2",zh:"GHD 仰卧起坐",en:"GHD Sit-up",
+ goal:"在 GHD 机上的大幅度核心动作,利用髋屈肌与腹肌的全程发力,刺激远超地面卷腹——也因此必须循序渐进。",
+ steps:["坐上 GHD,臀部前缘略超出坐垫,脚踝锁进滚轮。","控制后仰,身体过水平后双手向后伸触地方向。","腹肌+髋屈肌爆发收缩坐起,双手触脚踝前方的垫面。","全程速度可控,利用一点伸膝助力是合法技术。"],
+ cues:["新手从「仰到水平」开始,几周后再增加后仰深度","次数要保守:首练 10–15 次,GHD 的延迟酸痛非常凶","起身时呼气,后仰时吸气"],
+ faults:["第一次就大量满幅度,隔天腹肌灾难甚至横纹肌风险","后仰失控自由落体","脖子主动前甩借力"],
+ std:"连续 <b>15 次</b> 全幅度 GHD sit-up,节奏可控。",
+ next:"与 T2B、L-sit 组成完整核心体系。"},
+
+{id:"farmer-carry",cat:"mono",sub:"体能综合",lvl:"L1",zh:"农夫行走",en:"Farmer Carry",
+ goal:"负重行走——握力、躯干刚性与步态稳定的「最被低估的动作」。简单,但对全身的强化极其诚实。",
+ steps:["两手各提一只壶铃/哑铃,硬拉式拿起。","站直:肩后收下沉,核心绷紧,身体不向任何一侧倾斜。","小步幅、稳节奏向前走,重物贴近身体两侧。","到达距离后硬拉式放下,不要弯腰甩落。"],
+ cues:["想象「头顶一杯水」走路,躯干就是不动的容器","握不住就停下休息再走,不要让重物把肩拽垮","单侧版(suitcase carry)是抗侧屈核心的特效药"],
+ faults:["耸肩缩脖,斜方肌代偿","身体侧倾或骨盆摇摆","步子太大太快,变成踉跄"],
+ std:"双手各 <b>32/24kg</b> 行走 50 米不放下。",
+ next:"试试单侧行走与过头行走,稳定挑战逐级升高。"},
+
+// ---------- 攀爬类 ----------
+{id:"rope-climb",cat:"mono",sub:"攀爬类",lvl:"L3",zh:"爬绳",en:"Rope Climb",
+ goal:"借助腿部锁绳技术攀至 4.6m 顶端。技术正确时腿出大力,手臂只管换位——这是和「死拽硬上」的本质区别。",
+ steps:["跳起抓绳,双腿用 J-hook(绳从一侧脚背绕过另一脚踩住)或 S-wrap 锁绳。","站腿:像踩台阶一样蹬直双腿,身体上移。","双手快速向上交替换位,重新收腿锁绳。","「锁—站—换手」循环至触顶;下降时松一格锁一格,绝不滑降。"],
+ cues:["腿锁牢的瞬间,手可以完全松开——用这个标准检验锁绳质量","收腿要高,一次站起赚足距离","下降比上升更重要:控制下降保护双手和安全"],
+ faults:["不锁腿纯手臂拉,两趟力竭","锁绳太松,站腿时绳滑走","滑降烧手,掌心起泡报废一周"],
+ std:"完成 <b>3 次</b> 触顶爬绳(4.6m),含受控下降。",
+ next:"腿锁技术圆满后,去掉腿——无腿爬绳,纯拉力的世界。"},
+
+{id:"legless-rope-climb",cat:"mono",sub:"攀爬类",lvl:"L4",zh:"无腿爬绳",en:"Legless Rope Climb",
+ goal:"全程不用腿锁绳的爬绳,纯上肢拉力 + 核心控制,Games 级别的拉力试金石。",
+ steps:["跳起高位抓绳,身体呈 L 或微屈髋(降低摆动)。","单手向上换位时,另一手全力锁紧,核心刹住身体晃动。","换手节奏:小幅、快速、交替,身体贴近绳。","触顶后同样以受控交替换手下降,落地前留好缓冲。"],
+ cues:["前置硬指标:严格引体 10+,且 L-sit 悬挂稳定","身体晃动是最大的力量小偷,核心全程绷死","前臂会先于背阔报警,握力训练(毛巾悬挂)提前补"],
+ faults:["大幅度蹿跳式换手,脱手风险高","身体甩成钟摆,每次换手都在救险","上去了下不来——下降力量没有储备"],
+ std:"完成 <b>1 次</b> 触顶无腿爬绳并受控下降。",
+ next:"攀爬类登顶。L-sit 无腿爬绳是最后的炫技形态。"},
+
+// ---------- 器械有氧 ----------
+{id:"row-erg",cat:"mono",sub:"器械有氧",lvl:"L1",zh:"划船机",en:"Rowing (Erg)",
+ goal:"全身参与的低冲击有氧之王。技术差的人用手臂划,技术好的人用腿划——功率差距可达 30%。",
+ steps:["发力顺序:腿蹬(60%)→ 髋展(30%)→ 臂拉(10%),回程顺序完全相反。","抓水位(catch):小腿垂直、躯干前倾 1 点钟方向、手臂伸直。","蹬腿驱动,杆贴近身体直线拉至下肋。","回桨比拉桨慢(节奏 1:2),恢复就在回桨里。"],
+ cues:["「腿—髋—臂,臂—髋—腿」默念顺序直到成为本能","桨频不是越快越好:20–24 s/m 练效率,28+ 比赛","盯功率(瓦数)练技术:同心率下瓦数涨 = 技术在涨"],
+ faults:["开背过早,腿还没蹬完背先抡","拉到锁骨或肚脐,力线偏移","回桨时膝盖先弯,杆撞膝盖"],
+ std:"<b>2000 米</b> 男 8:00 / 女 9:00 内完成,全程动作顺序正确。",
+ next:"划船经济性建立后,风扇车的全身输出会顺滑很多。"},
+
+{id:"assault-bike",cat:"mono",sub:"器械有氧",lvl:"L2",zh:"风扇车",en:"Assault Bike",
+ goal:"风阻无上限的全身自行车——你输出多少它反馈多少,公认「最诚实也最痛苦」的体能器械。",
+ steps:["调座高:脚踏最低点时膝盖微弯约 25–35°。","手脚同步:同侧推拉协调,全身参与而非只用腿。","校准节奏:找到能维持的目标 RPM,锁住它。","间歇训练为主:如 10 × 30 秒冲刺 / 60 秒慢踩。"],
+ cues:["「风扇车没有惯性帮忙」——停止发力立刻掉速,分配比爆发重要","手臂推拉真实出力,能分担腿部 20% 负荷","冲刺段身体稳定别乱晃,晃动全是漏掉的瓦数"],
+ faults:["开局猛冲 10 秒,随后断崖崩盘","只用腿踩,手臂搭着当扶手","座位过低,膝关节夹角过小磨损"],
+ std:"<b>10 分钟</b>内骑出 男 60 / 女 45 卡路里。",
+ next:"引擎容量达标。Echo bike 间歇是顶级体能的日常餐。"},
+
+{id:"running",cat:"mono",sub:"器械有氧",lvl:"L1",zh:"跑步技术",en:"Running",
+ goal:"最古老的体能动作也有技术:好的跑姿省下的能量,在 Murph 后半程就是生死线。",
+ steps:["姿态:身体从脚踝开始微前倾(不是弯腰),头颈中立。","落地:前脚掌/全掌在重心正下方落地,避免跨大步脚跟刹车。","步频:目标 170–180 步/分,小步快频。","摆臂:手肘约 90°,前后摆不过中线,带动节奏。"],
+ cues:["「提脚」而不是「蹬地」——想着把脚跟拉向臀部","用节拍器 App 校 180 步频,一周就能内化","上坡缩步幅保持步频,下坡控制不刹车"],
+ faults:["大跨步脚跟着地,每步都在踩刹车","坐着跑:髋后坐,蹬伸不充分","耸肩握拳,上半身僵硬耗能"],
+ std:"<b>1600 米</b> 男 7:30 / 女 8:30 内完成,步频 ≥170。",
+ next:"配合划船与风扇车,三大引擎全部在线。"},
+];
+
+MOVES4.forEach(m=>{ALL.push(m);byId[m.id]=m});
+
+PATHS.push(
+ {zh:"双摇之路",en:"Jump Rope Line",desc:"从一跳一摇到一跳三摇,手腕速度逐级解锁。",
+  chain:["single-under","double-under","crossover-under","triple-under"]},
+ {zh:"壶铃之路",en:"Kettlebell Line",desc:"先用高脚杯学蹲,再用摆动点燃髋部,最后用土耳其起立串起全身。",
+  chain:["goblet-squat","russian-swing","american-swing","tgu"]},
+ {zh:"单腿之路",en:"Single-leg Line",desc:"从弓步到单腿全蹲,把左右失衡一点点抹平。",
+  chain:["walking-lunge","pistol"]},
+ {zh:"爬绳之路",en:"Rope Line",desc:"严格引体打底,先学会用腿锁绳,再把腿丢掉。",
+  chain:["strict-pullup","rope-climb","legless-rope-climb"]},
+);
+
+BADGES.push(
+ {id:"du-free",ic:"🪢",nm:"双摇自由",cond:"掌握双摇跳绳",test:s=>s.status["double-under"]==="mastered"},
+ {id:"rope-king",ic:"🎗️",nm:"绳王",cond:"跳绳类全部掌握",test:s=>subDone(s,"跳绳类")},
+ {id:"kb-master",ic:"🔔",nm:"壶铃师",cond:"壶铃与药球全掌握",test:s=>subDone(s,"壶铃与药球")},
+ {id:"climber",ic:"🧗",nm:"攀爬者",cond:"攀爬类全部掌握",test:s=>subDone(s,"攀爬类")},
+ {id:"engine",ic:"🚂",nm:"引擎机器",cond:"器械有氧全掌握",test:s=>subDone(s,"器械有氧")},
+);
+
+// ---------- 渲染器 v2:完全重定义,支持双腿/双臂/杠铃/壶铃/药球/新道具 ----------
+Object.assign(ILLUS,{
+"single-under":{props:[["floor"],["ropeloop"]],dur:900,
+ A:{head:[100,38],sh:[100,48],el:[107,62],ha:[114,70],hip:[100,84],kn:[100,108],an:[100,128],toe:[92,130]},
+ B:{head:[100,30],sh:[100,40],el:[107,55],ha:[114,64],hip:[100,76],kn:[100,100],an:[100,118],toe:[95,124]},
+ cap:"前脚掌轻弹 · 手腕画小圈"},
+"double-under":{props:[["floor"],["ropeloop"]],dur:800,
+ A:{head:[100,38],sh:[100,48],el:[106,60],ha:[112,66],hip:[100,84],kn:[100,108],an:[100,128],toe:[92,130]},
+ B:{head:[100,24],sh:[100,34],el:[106,48],ha:[112,54],hip:[100,70],kn:[102,94],an:[104,112],toe:[100,118]},
+ cap:"跳高 20% · 手腕快 100%"},
+"crossover-under":{props:[["floor"],["ropeloop"]],dur:1000,
+ A:{head:[100,34],sh:[100,44],el:[108,58],ha:[116,64],el2:[92,58],ha2:[84,64],hip:[100,80],kn:[100,104],an:[100,122],toe:[94,127]},
+ B:{head:[100,30],sh:[100,40],el:[106,54],ha:[88,60],el2:[94,54],ha2:[112,60],hip:[100,76],kn:[100,100],an:[100,118],toe:[95,124]},
+ cap:"双臂过中线交叉 · 节奏不乱"},
+"triple-under":{props:[["floor"],["ropeloop"]],dur:850,
+ A:{head:[100,38],sh:[100,48],el:[106,60],ha:[112,66],hip:[100,84],kn:[100,108],an:[100,128],toe:[92,130]},
+ B:{head:[100,18],sh:[100,28],el:[105,42],ha:[110,48],hip:[100,64],kn:[103,88],an:[106,106],toe:[102,112]},
+ cap:"显著加高滞空 · 手腕极速三圈"},
+"goblet-squat":{props:[["floor"]],dur:1700,kb:true,
+ A:{head:[98,42],sh:[100,52],el:[97,66],ha:[91,57],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ B:{head:[93,64],sh:[96,74],el:[94,86],ha:[88,77],hip:[104,101],kn:[85,103],an:[92,128],toe:[84,130]},
+ cap:"壶铃贴胸 · 手肘从膝间下落"},
+"russian-swing":{props:[["floor"]],dur:1300,kb:true,
+ A:{head:[91,59],sh:[95,68],el:[96,84],ha:[97,100],hip:[112,82],kn:[103,104],an:[98,128],toe:[90,130]},
+ B:{head:[98,42],sh:[100,52],el:[87,52],ha:[74,52],hip:[100,86],kn:[100,108],an:[98,128],toe:[90,130]},
+ cap:"髋部铰链爆发 · 摆至胸口"},
+"american-swing":{props:[["floor"]],dur:1400,kb:true,
+ A:{head:[91,59],sh:[95,68],el:[96,84],ha:[97,100],hip:[112,82],kn:[103,104],an:[98,128],toe:[90,130]},
+ B:{head:[105,42],sh:[100,50],el:[98,33],ha:[96,16],hip:[100,86],kn:[100,108],an:[98,128],toe:[90,130]},
+ cap:"同样的髋爆发 · 轨迹延伸到头顶"},
+"wall-ball-shot":{props:[["floor"],["wall",164],["target",164,36]],dur:1400,ball:true,
+ A:{head:[107,64],sh:[104,74],el:[105,84],ha:[112,76],hip:[96,101],kn:[115,103],an:[108,128],toe:[116,130]},
+ B:{head:[97,42],sh:[102,50],el:[112,38],ha:[121,27],hip:[100,84],kn:[100,108],an:[100,128],toe:[108,130]},
+ cap:"蹲起动能传到指尖 · 球走直线"},
+"tgu":{props:[["floor"]],dur:2200,kb:true,
+ A:{head:[60,116],sh:[70,120],el:[72,104],ha:[74,88],hip:[105,122],kn:[122,110],an:[130,126],toe:[136,128]},
+ B:{head:[80,70],sh:[86,80],el:[88,63],ha:[90,46],hip:[104,96],kn:[122,108],an:[130,126],toe:[136,128]},
+ cap:"铃臂全程垂直 · 眼睛盯铃"},
+"burpee":{props:[["floor"]],dur:1500,
+ A:{head:[68,114],sh:[82,118],el:[94,120],ha:[78,128],hip:[118,120],kn:[140,123],an:[160,124],toe:[166,128]},
+ B:{head:[97,32],sh:[100,42],el:[104,28],ha:[106,16],hip:[100,76],kn:[100,100],an:[100,118],toe:[94,124]},
+ cap:"胸触地到腾空伸髋 · 一气呵成"},
+"box-jump":{props:[["floor"],["box",118,48,46]],dur:1600,
+ A:{head:[76,56],sh:[81,65],el:[73,76],ha:[67,86],hip:[88,94],kn:[82,112],an:[86,128],toe:[94,130]},
+ B:{head:[131,14],sh:[135,24],el:[141,34],ha:[139,46],hip:[137,50],kn:[135,68],an:[138,82],toe:[146,84]},
+ cap:"摆臂蓄力 · 全掌落箱站直"},
+"walking-lunge":{props:[["floor"]],dur:1700,
+ A:{head:[98,40],sh:[100,50],el:[104,64],ha:[106,76],hip:[100,86],kn:[100,108],an:[100,128],toe:[108,130],kn2:[96,108],an2:[94,128],toe2:[86,130]},
+ B:{head:[98,48],sh:[100,58],el:[104,70],ha:[106,82],hip:[100,92],kn:[116,104],an:[116,128],toe:[124,130],kn2:[88,116],an2:[76,126],toe2:[68,130]},
+ cap:"垂直下沉 · 后膝轻触地"},
+"pistol":{props:[["floor"]],dur:1900,
+ A:{head:[98,40],sh:[100,50],el:[88,58],ha:[76,62],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130],kn2:[112,94],an2:[124,99],toe2:[132,99]},
+ B:{head:[90,78],sh:[94,88],el:[80,84],ha:[66,82],hip:[106,112],kn:[90,114],an:[96,128],toe:[88,130],kn2:[120,110],an2:[138,108],toe2:[146,107]},
+ cap:"单腿全深度 · 悬空腿不落地"},
+"ghd-situp":{props:[["floor"],["bench",92,140,102]],dur:1700,
+ A:{head:[54,112],sh:[64,110],el:[50,104],ha:[38,100],hip:[102,100],kn:[122,102],an:[136,108],toe:[144,106]},
+ B:{head:[86,60],sh:[90,70],el:[80,80],ha:[72,88],hip:[102,100],kn:[122,102],an:[136,108],toe:[144,106]},
+ cap:"大幅后仰再爆发坐起 · 次数保守"},
+"farmer-carry":{props:[["floor"]],dur:1100,kb:true,
+ A:{head:[98,42],sh:[100,52],el:[102,72],ha:[104,92],hip:[100,86],kn:[108,104],an:[112,126],toe:[120,129],kn2:[90,106],an2:[84,126],toe2:[76,130]},
+ B:{head:[98,42],sh:[100,52],el:[102,72],ha:[104,92],hip:[100,86],kn:[92,104],an:[88,126],toe:[80,130],kn2:[110,106],an2:[116,126],toe2:[124,129]},
+ cap:"头顶一杯水 · 躯干纹丝不动"},
+"rope-climb":{props:[["climbrope",100]],dur:1800,
+ A:{head:[107,66],sh:[100,74],el:[100,60],ha:[100,46],hip:[102,98],kn:[90,106],an:[100,116],toe:[100,123]},
+ B:{head:[107,42],sh:[100,50],el:[100,36],ha:[100,22],hip:[102,74],kn:[90,82],an:[100,92],toe:[100,99]},
+ cap:"锁腿—站起—换手 · 腿出大力"},
+"legless-rope-climb":{props:[["climbrope",100]],dur:1800,
+ A:{head:[107,66],sh:[100,74],el:[100,60],ha:[100,46],hip:[97,98],kn:[86,104],an:[88,118],toe:[91,124]},
+ B:{head:[107,42],sh:[100,50],el:[100,36],ha:[100,22],hip:[97,74],kn:[86,80],an:[88,94],toe:[91,100]},
+ cap:"核心刹住摆动 · 小幅快速换手"},
+"row-erg":{props:[["erg"]],dur:1600,
+ A:{head:[88,74],sh:[95,83],el:[79,89],ha:[64,93],hip:[110,107],kn:[78,90],an:[64,111],toe:[60,105]},
+ B:{head:[148,72],sh:[142,81],el:[133,92],ha:[122,89],hip:[126,107],kn:[92,105],an:[64,111],toe:[60,105]},
+ cap:"腿→髋→臂 · 回桨比拉桨慢"},
+"assault-bike":{props:[["bike"]],dur:900,
+ A:{head:[118,62],sh:[113,72],el:[100,80],ha:[88,72],hip:[126,98],kn:[104,104],an:[88,116],toe:[80,118]},
+ B:{head:[118,62],sh:[113,72],el:[102,84],ha:[90,80],hip:[126,98],kn:[114,114],an:[104,126],toe:[96,128]},
+ cap:"手脚同步推拉 · 锁住目标转速"},
+"running":{props:[["floor"]],dur:700,
+ A:{head:[104,38],sh:[100,48],el:[90,58],ha:[82,68],hip:[97,84],kn:[112,102],an:[118,124],toe:[126,126],kn2:[84,100],an2:[76,116],toe2:[70,122]},
+ B:{head:[104,38],sh:[100,48],el:[110,56],ha:[118,64],hip:[97,84],kn:[86,102],an:[78,124],toe:[72,128],kn2:[114,98],an2:[122,114],toe2:[130,118]},
+ cap:"重心下落地 · 小步快频 180"},
+});
+
+// 全量重定义 illusSVG / startIllus / drawPose(含此前所有能力)
+illusSVG=function(id){
+  const cfg=ILLUS[id];if(!cfg)return"";
+  let props="";
+  cfg.props.forEach(p=>{
+    if(p[0]==="floor")props+=`<line x1="14" y1="130" x2="186" y2="130" class="ip"/>`;
+    else if(p[0]==="bar"){const y=p[1];props+=`<line x1="46" y1="${y}" x2="46" y2="130" class="ip"/><line x1="154" y1="${y}" x2="154" y2="130" class="ip"/><line x1="46" y1="${y}" x2="154" y2="${y}" class="ipb"/>`}
+    else if(p[0]==="wall")props+=`<line x1="${p[1]}" y1="14" x2="${p[1]}" y2="130" class="ip"/>`;
+    else if(p[0]==="rings"){const[_,x,y,sl]=p;props+=`<line x1="${x}" y1="0" x2="${x}" y2="${sl}" class="ip" stroke-dasharray="3 3"/><circle cx="${x}" cy="${y}" r="6" class="ipr"/>`}
+    else if(p[0]==="pbar"){const y=p[1];props+=`<line x1="70" y1="${y}" x2="130" y2="${y}" class="ipb"/><line x1="76" y1="${y}" x2="76" y2="130" class="ip"/><line x1="124" y1="${y}" x2="124" y2="130" class="ip"/>`}
+    else if(p[0]==="bench"){const[_,x1,x2,y]=p;props+=`<rect x="${x1}" y="${y}" width="${x2-x1}" height="9" rx="3" class="ipf"/><line x1="${x1+8}" y1="${y+9}" x2="${x1+8}" y2="130" class="ip"/><line x1="${x2-8}" y1="${y+9}" x2="${x2-8}" y2="130" class="ip"/>`}
+    else if(p[0]==="box"){const[_,x,w,h]=p;props+=`<rect x="${x}" y="${130-h}" width="${w}" height="${h}" rx="4" class="ipf" stroke="#39424F" stroke-width="2"/>`}
+    else if(p[0]==="ropeloop")props+=`<ellipse cx="100" cy="78" rx="48" ry="58" fill="none" stroke="#39424F" stroke-width="2" stroke-dasharray="4 6"/>`;
+    else if(p[0]==="climbrope"){const x=p[1];props+=`<line x1="${x}" y1="0" x2="${x}" y2="128" class="ipb" stroke-dasharray="9 3"/><circle cx="${x}" cy="126" r="3.5" class="ipf"/>`}
+    else if(p[0]==="target"){const[_,x,y]=p;props+=`<circle cx="${x-4}" cy="${y}" r="7" fill="none" stroke="var(--green)" stroke-width="2" opacity=".7"/><circle cx="${x-4}" cy="${y}" r="2" fill="var(--green)" opacity=".7"/>`}
+    else if(p[0]==="erg")props+=`<line x1="44" y1="112" x2="166" y2="110" class="ip"/><circle cx="40" cy="98" r="13" class="ipr"/><line x1="60" y1="104" x2="68" y2="120" class="ip"/><rect x="104" y="104" width="18" height="5" rx="2" class="ipf"/>`;
+    else if(p[0]==="bike")props+=`<circle cx="66" cy="106" r="20" class="ipr"/><circle cx="66" cy="106" r="3" class="ipf"/><line x1="66" y1="86" x2="90" y2="70" class="ip"/><line x1="84" y1="106" x2="122" y2="100" class="ip"/><line x1="122" y1="100" x2="124" y2="92" class="ip"/><rect x="118" y="90" width="14" height="4" rx="2" class="ipf"/><line x1="122" y1="100" x2="128" y2="128" class="ip"/><line x1="66" y1="126" x2="66" y2="128" class="ip"/>`;
+  });
+  const impl=cfg.bb?'<circle id="f-plate" r="11" class="ifp"/><circle id="f-axle" r="3" class="ifp2"/>'
+    :cfg.kb?'<circle id="f-plate" r="7" class="ifk"/><circle id="f-axle" r="2" class="ifp2"/>'
+    :cfg.ball?'<circle id="f-plate" r="8" class="ifb"/>':'';
+  return `<div class="illus"><svg viewBox="0 0 200 140" id="figsvg">
+    ${props}
+    <g class="ghost" id="ghostg"></g>
+    <g id="figg">
+      <circle id="f-head" r="7" class="ifh"/>
+      <path id="f-body" class="ifl"/>
+      <path id="f-arm" class="ifl"/>
+      <path id="f-arm2" class="ifl"/>
+      <path id="f-leg" class="ifl"/>
+      <path id="f-leg2" class="ifl"/>
+      ${impl}
+      <circle id="f-grip" r="2.6" class="ifg"/>
+    </g>
+  </svg><div class="illuscap">${cfg.cap} <span class="ab">A ⇄ B</span></div></div>`;
+};
+
+let CURIMPL=false;
+drawPose=function(A,B,t){
+  const j={};
+  ["head","sh","el","ha","el2","ha2","hip","kn","an","toe","kn2","an2","toe2"].forEach(k=>{
+    if(A[k]&&B[k])j[k]=lp(A[k],B[k],t);else if(A[k])j[k]=A[k];
+  });
+  const g=id=>document.getElementById(id);
+  if(!g("f-head"))return false;
+  g("f-head").setAttribute("cx",j.head[0]);g("f-head").setAttribute("cy",j.head[1]);
+  g("f-body").setAttribute("d",`M${j.sh} L${j.hip}`);
+  g("f-arm").setAttribute("d",`M${j.sh} L${j.el} L${j.ha}`);
+  g("f-arm2").setAttribute("d",j.el2?`M${j.sh} L${j.el2} L${j.ha2}`:"");
+  g("f-leg").setAttribute("d",`M${j.hip} L${j.kn} L${j.an} L${j.toe}`);
+  g("f-leg2").setAttribute("d",j.kn2?`M${j.hip} L${j.kn2} L${j.an2} L${j.toe2}`:"");
+  g("f-grip").setAttribute("cx",j.ha[0]);g("f-grip").setAttribute("cy",j.ha[1]);
+  if(CURIMPL){
+    const p=g("f-plate"),ax=g("f-axle");
+    if(p){p.setAttribute("cx",j.ha[0]);p.setAttribute("cy",j.ha[1])}
+    if(ax){ax.setAttribute("cx",j.ha[0]);ax.setAttribute("cy",j.ha[1])}
+  }
+  return true;
+};
+
+startIllus=function(id){
+  stopIllus();
+  const cfg=ILLUS[id];if(!cfg)return;
+  CURIMPL=!!(cfg.bb||cfg.kb||cfg.ball);
+  const ghost=document.getElementById("ghostg");
+  if(ghost){
+    const A=cfg.A;
+    let g2=A.el2?`<path class="ifl" d="M${A.sh} L${A.el2} L${A.ha2}"/>`:"";
+    let l2=A.kn2?`<path class="ifl" d="M${A.hip} L${A.kn2} L${A.an2} L${A.toe2}"/>`:"";
+    let gi=cfg.bb?`<circle class="ifp" cx="${A.ha[0]}" cy="${A.ha[1]}" r="11"/>`
+          :cfg.kb?`<circle class="ifk" cx="${A.ha[0]}" cy="${A.ha[1]}" r="7"/>`
+          :cfg.ball?`<circle class="ifb" cx="${A.ha[0]}" cy="${A.ha[1]}" r="8"/>`:"";
+    ghost.innerHTML=`<circle class="ifh" cx="${A.head[0]}" cy="${A.head[1]}" r="7"/>
+      <path class="ifl" d="M${A.sh} L${A.hip}"/><path class="ifl" d="M${A.sh} L${A.el} L${A.ha}"/>${g2}
+      <path class="ifl" d="M${A.hip} L${A.kn} L${A.an} L${A.toe}"/>${l2}${gi}`;
+  }
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    drawPose(cfg.A,cfg.B,1);return;
+  }
+  const dur=cfg.dur,hold=420,cycle=(dur+hold)*2;
+  const t0=performance.now();
+  function frame(now){
+    const e=(now-t0)%cycle;
+    let t;
+    if(e<dur)t=e/dur;
+    else if(e<dur+hold)t=1;
+    else if(e<dur*2+hold)t=1-(e-dur-hold)/dur;
+    else t=0;
+    t=(1-Math.cos(Math.PI*t))/2;
+    if(!drawPose(cfg.A,cfg.B,t)){illusRAF=null;return}
+    illusRAF=requestAnimationFrame(frame);
+  }
+  illusRAF=requestAnimationFrame(frame);
+};
+
+// ================= 扩展模块 5a:补齐 84 个动作 =================
+SUBCATS.push("哑铃类");
+
+const MOVES5=[
+// ---------- 体操补充 ----------
+{id:"chin-up",cat:"gym",sub:"拉类",lvl:"L2",zh:"反握引体向上",en:"Chin-up",
+ goal:"掌心朝向自己的引体,二头肌参与度更高、对多数人更友好——是正握引体卡壳期的最佳突破口。",
+ steps:["反握(掌心朝自己)与肩同宽抓杠,主动悬挂起始。","肩胛下沉后拉,手肘向身体两侧的「口袋」方向收。","下巴明确过杠,顶端胸口微挺。","2 秒控制下放至手肘完全伸直。"],
+ cues:["反握允许手肘更贴身,背阔+二头协同发力","与正握交替安排,刺激更全面也保护肘部","每次都从直臂启动,半程不算数"],
+ faults:["底部不伸直,蹭次数","耸肩够下巴,肩颈代偿","握距过窄手腕别劲"],
+ std:"连续 <b>8 次</b>(男)/ <b>5 次</b>(女)全程反握引体。",
+ next:"正反握都达标后,负重引体与高难度拉类任你选。"},
+
+{id:"c2w-handstand",cat:"gym",sub:"倒立类",lvl:"L2",zh:"墙面正面倒立",en:"Chest-to-Wall Handstand",
+ goal:"面朝墙的倒立保持——背对墙练的是胆量,面对墙练的才是直线。修正香蕉背、建立标准倒立体态的最佳工具。",
+ steps:["背对墙俯撑,双脚沿墙向上走(wall walk 的上半程)。","双手向墙走近至距墙 15–25cm,鼻尖几乎贴墙。","脚尖轻点墙,身体调成一条垂直线:推肩、收肋、夹臀。","保持后双脚沿墙走下,控制退出。"],
+ cues:["越靠近墙越接近真实倒立直线","脚尖只「点」墙,体重在手上而不是靠在墙上","用这个姿势练触肩、练单脚离墙,过渡到自由倒立"],
+ faults:["距墙太远,身体斜成斜杠","腰塌肋骨外翻,把香蕉背带进了正面倒立","头过度后仰找地面"],
+ std:"鼻尖近墙的标准直线保持 <b>60 秒</b>。",
+ next:"直线体态内化后,自由倒立的成功率会陡增。"},
+
+{id:"v-up",cat:"gym",sub:"核心与保持",lvl:"L2",zh:"两头起",en:"V-up",
+ goal:"仰卧同时折叠上下半身、指尖触脚背的动态核心压缩,T2B 的地面镜像动作。",
+ steps:["仰卧,双臂过头伸直,双腿并拢伸直,腰压向地面。","呼气同时抬起上身与双腿,身体折成 V 形。","指尖触碰脚背(或小腿),顶点短暂停顿。","控制还原,肩与脚跟不完全落地,保持张力进入下一次。"],
+ cues:["以髋为铰链对折,不是抡手甩腿","眼睛看脚尖,帮助上背卷起","还原不落地——全程张力是和卷腹的本质区别"],
+ faults:["膝盖大弯,假 V 真团","下落自由落体,腰拍地","脖子前拉代偿,练完脖子酸"],
+ std:"连续 <b>15 次</b> 直腿两头起,指尖每次触到脚背。",
+ next:"地面压缩达标,把同样的折叠搬上单杠就是 T2B。"},
+
+{id:"side-plank",cat:"gym",sub:"核心与保持",lvl:"L1",zh:"侧平板支撑",en:"Side Plank",
+ goal:"抗侧屈核心的基础动作,训练腰方肌与侧链稳定——深蹲硬拉不歪斜、跑步骨盆不掉,都靠它。",
+ steps:["侧卧,肘撑在肩正下方,前臂垂直身体。","顶髋离地,身体从头到脚踝一条直线。","上方手叉腰或指向天花板,头颈中立。","保持均匀呼吸,两侧都练,弱侧多练一组。"],
+ cues:["「把髋顶向天花板」,下塌的侧桥等于没练","肩膀压实,不要缩进耳朵","进阶:上方腿抬起 / 脚垫高"],
+ faults:["髋部下垂,身体成折线","身体前后旋转,不在一个平面","憋气硬顶"],
+ std:"每侧标准保持 <b>45 秒</b>,两侧时长差小于 10%。",
+ next:"与平板、空心体组成三面核心,为大重量与单边动作护航。"},
+
+{id:"strict-t2b",cat:"gym",sub:"核心与保持",lvl:"L3",zh:"严格脚触杠",en:"Strict Toes-to-Bar",
+ goal:"无摆动的脚触杠:从主动悬挂直腿折叠到脚碰杠。比 kipping 版更纯粹的核心压缩力量。",
+ steps:["主动悬挂,肩胛锁定,身体静止。","骨盆后倾启动,直腿(或微屈)向杠的方向折叠上抬。","双脚触杠,过程缓慢可控,不借任何摆荡。","同样缓慢地下放回悬挂,身体始终不晃。"],
+ cues:["压杠(肩部主动下压)给折叠让出空间","腘绳柔韧不足是最常见瓶颈,前屈拉伸同步安排","下放 3 秒,离心是力量增长最快的一段"],
+ faults:["身体后摆借力,严格变 kipping","膝盖大弯,触杠高度作弊","下放阶段直接放弃,自由落体"],
+ std:"连续 <b>5 次</b> 严格脚触杠,身体无可见摆动。",
+ next:"严格版在手,kipping T2B 的大组数只是节奏问题。"},
+
+{id:"l-hang",cat:"gym",sub:"核心与保持",lvl:"L2",zh:"悬垂 L 保持",en:"L-Hang",
+ goal:"悬挂中双腿水平的静态保持,L-sit 的单杠版本。同时喂养握力、肩稳定与核心压缩。",
+ steps:["主动悬挂,肩胛下沉锁定。","收腹抬腿至双腿水平(先团身,逐步伸直)。","膝直、脚尖绷,身体呈悬挂的 L 形。","保持均匀呼吸至力竭前主动放下。"],
+ cues:["难度阶梯:团身悬挂→单腿伸→双腿水平","骨盆微后倾,腰不要塌着挂","它是 T2B 与 L-sit 之间的完美桥梁"],
+ faults:["死悬状态抬腿,肩部松垮","腿低于水平 30° 凑时长","身体随呼吸大幅晃动"],
+ std:"标准 L 悬挂保持 <b>20 秒</b>。",
+ next:"杠上 L 稳了,L-sit、严格 T2B 都在射程之内。"},
+
+// ---------- 举重补充 ----------
+{id:"good-morning",cat:"wl",sub:"硬拉与翻铃",lvl:"L2",zh:"早安式",en:"Good Morning",
+ goal:"杠铃在背上的纯髋铰链,把硬拉的「俯身-挺起」单独拎出来强化,腘绳与下背的专项营养。",
+ steps:["颈后深蹲杠位,双脚髋宽,膝微弯锁定角度。","保持背部中立,屁股向后推,躯干前倾。","俯身至躯干接近水平(柔韧允许范围),腘绳有明显牵拉感。","臀部发力夹紧,把躯干「拉」回直立。"],
+ cues:["膝盖角度全程不变——变了就是在做蹲","重量保守:这是练后链的,不是练自尊的","想象用屁股去顶身后的墙"],
+ faults:["弓背前倾,腰椎扛杠","俯身时屈膝下蹲,铰链变深蹲","用惯性甩起,下背反弓"],
+ std:"用 <b>0.5 倍体重</b> 完成 3 组 × 10 次,背部全程中立。",
+ next:"铰链模式越扎实,硬拉与摆动的天花板越高。"},
+
+{id:"hang-power-snatch",cat:"wl",sub:"抓举类",lvl:"L3",zh:"悬垂力量抓举",en:"Hang Power Snatch",
+ goal:"从膝上悬垂位起的抓举,删去第一拉,专注「髋部起爆 + 头顶接杠」——抓举技术分解教学的核心环节。",
+ steps:["宽握硬拉站起,屈髋下放杠至膝上悬垂位。","爆发三伸展,杠贴髋向上加速。","耸肩带肘,身体下沉,直接在头顶锁定接杠。","四分之一蹲深度站直完成。"],
+ cues:["悬垂位肩在杠前、重心脚掌中心,姿势先于爆发","「贴髋起爆」的触感在这里练得最清楚","轻重量大量重复,神经轨迹比肌肉更需要训练"],
+ faults:["悬垂位背松懈,起爆前姿势已散","杠离髋远,抡成大弧线","锁定犹豫,杠在头顶飘"],
+ std:"以 <b>0.6 倍体重</b> 完成 3 次干净的悬垂力量抓举。",
+ next:"配合抓举平衡训练下钻速度,通往深蹲抓举。"},
+
+{id:"snatch-balance",cat:"wl",sub:"抓举类",lvl:"L3",zh:"抓举平衡",en:"Snatch Balance",
+ goal:"杠在背上,爆发下钻到过头深蹲底部接杠——专练抓举「钻杠下」的速度与底部接杠信心。",
+ steps:["颈后杠位、抓举握距,双脚提铃站位。","微屈膝预蹲(dip),轻微向上送杠。","在杠几乎不动的瞬间,极速下钻,双脚跳至深蹲站位。","以 OHS 底部姿势在头顶锁定接杠,稳住后站起。"],
+ cues:["核心是「人下杠不动」,不是把杠顶多高","锁定要「砸」出去:主动向上顶死,不留软肘","从空杆开始,速度与精度优先于重量"],
+ faults:["杠被推得很高,变成了笨重的挺举","下钻后接杠位置偏前,OHS 底部不稳","脚跳得过宽或不动,站位错误"],
+ std:"以自身 <b>0.75 倍体重</b> 完成 3 次干脆的抓举平衡。",
+ next:"下钻速度+底部稳定齐备,深蹲抓举水到渠成。"},
+
+// ---------- 哑铃类 ----------
+{id:"db-push-press",cat:"wl",sub:"哑铃类",lvl:"L2",zh:"哑铃借力推举",en:"DB Push Press",
+ goal:"双哑铃版借力推举:独立负重逼出左右对称,肩稳定需求高于杠铃,是家庭与差旅训练的主力。",
+ steps:["双哑铃置于肩上(轻触三角肌),掌心相对或前向。","躯干垂直浅蹲下沉。","急停爆发蹬腿,把动能传给哑铃。","双臂同步推至头顶锁定,大臂贴近耳侧。"],
+ cues:["两只哑铃各自为政——弱侧会立刻暴露,正是价值所在","锁定时掌心可自然转向前,腕肘肩一条线","下放回肩上要轻,用腿接一下缓冲"],
+ faults:["两侧不同步,一高一低","腰部后仰借胸推","哑铃在头顶外飘,没有收向中线"],
+ std:"双手各 <b>22.5/15kg</b> 完成 10 次借力推举。",
+ next:"过头位稳固后,接上深蹲——哑铃 Thruster。"},
+
+{id:"db-thruster",cat:"wl",sub:"哑铃类",lvl:"L2",zh:"哑铃颈前蹲推",en:"DB Thruster",
+ goal:"哑铃版 Thruster:前置负重的全深度蹲+借势上推。比杠铃版对核心抗旋转要求更高,WOD 出镜率极高。",
+ steps:["双哑铃架肩,手肘略抬,全深度下蹲。","蹲起加速,动能不间断地把哑铃送过头顶。","头顶锁定瞬间身体一条直线。","哑铃下落回肩,顺势压入下一次深蹲。"],
+ cues:["与杠铃版同理:蹲起即是推举的发动机","哑铃贴肩下蹲,离肩的哑铃是双倍消耗","节奏循环:落-蹲-起-推一个圆"],
+ faults:["蹲起到顶停顿再推,动能浪费","哑铃举得偏前,腰背代偿","深度缩水,髋未过膝"],
+ std:"双手各 <b>22.5/15kg</b> 连续 12 次不落铃。",
+ next:"加上地面环节,就是著名的恶魔推举。"},
+
+{id:"db-snatch",cat:"wl",sub:"哑铃类",lvl:"L2",zh:"哑铃抓举",en:"DB Snatch",
+ goal:"单手把哑铃从地面一次甩到头顶。单边爆发+核心抗旋,比杠铃抓举门槛低得多,是 CrossFit Open 的常客。",
+ steps:["哑铃立于两脚之间,屈髋单手抓握,背部中立。","爆发伸髋,哑铃贴身向上加速。","高点耸肩翻腕,哑铃绕到头顶锁定(power 接)。","控制放下,可空中换手衔接另一侧。"],
+ cues:["「贴身上升、绕腕过顶」,不要抡大弧砸手腕","非持铃手向外伸展配平","下放分两段:先回肩前,再回地面,保护腰"],
+ faults:["弯腰圆背起铃","哑铃远离身体抡上去,肩腕受冲击","顶端不锁直就急着放"],
+ std:"单手 <b>22.5/15kg</b> 左右交替完成 20 次。",
+ next:"单边爆发就绪,与波比组合成恶魔推举。"},
+
+{id:"devil-press",cat:"wl",sub:"哑铃类",lvl:"L3",zh:"恶魔推举",en:"Devil Press",
+ goal:"双哑铃波比 + 双铃过头摆抓的合体,名字毫不夸张——单个动作就能打爆心率与全身肌群。",
+ steps:["双手握铃俯身,做一个手扶哑铃的波比(胸触地)。","跳脚回蹲位,双铃仍在地面。","双铃同时从腿间向后小摆,爆发伸髋把双铃直接甩到头顶锁定。","控制放回地面,进入下一次。"],
+ cues:["过头那一下是「双铃摆抓」不是「弯举+推举」——髋是发动机","波比阶段身体压在铃上省力,推地与跳脚连贯","固定节拍呼吸,这个动作的崩溃从喘乱开始"],
+ faults:["二头弯举式硬拽上肩再推,效率低还伤肘","胸不触地、髋不锁定,处处偷量","开局飞速,一分钟后心率爆表节奏崩盘"],
+ std:"双手各 <b>22.5/15kg</b>,<b>5 分钟内完成 15 次</b>。",
+ next:"恶魔已收服。哑铃类只剩稳定性大考——过头弓步。"},
+
+{id:"db-oh-lunge",cat:"wl",sub:"哑铃类",lvl:"L3",zh:"哑铃过头弓步",en:"DB Overhead Walking Lunge",
+ goal:"单/双铃锁定头顶进行行走弓步,肩部稳定 + 核心抗侧屈 + 单腿力量同时在线,失衡瞬间无处可藏。",
+ steps:["哑铃推举至头顶完全锁定,大臂贴耳。","保持锁定,迈步进入标准弓步,后膝轻触地。","前腿蹬起,衔接下一步,头顶哑铃纹丝不动。","单铃版本走完一程换手再走一程。"],
+ cues:["眼睛平视,用余光感知哑铃位置——抬头看铃必失衡","「哑铃钉在天花板上」,移动的只有下半身","核心全程刚性,每一步都是移动的平板支撑"],
+ faults:["手肘渐弯,锁定悄悄丢失","躯干侧倾向持铃侧,腰侧代偿","步幅缩水,弓步变碎步"],
+ std:"单手 <b>22.5/15kg</b> 过头行走弓步 <b>20 米</b>不落铃。",
+ next:"哑铃类满级。这套稳定能力会反哺所有过头动作。"},
+
+// ---------- 体能与单项补充 ----------
+{id:"kb-snatch",cat:"mono",sub:"壶铃与药球",lvl:"L3",zh:"壶铃抓举",en:"KB Snatch",
+ goal:"单手壶铃从摆动直接到头顶锁定,关键在「绕腕」——让铃温柔地翻到手背侧,而不是砸在腕上。",
+ steps:["单手摆动起手,壶铃后摆蓄力。","爆发伸髋,铃贴身上升至面部高度。","高点瞬间松握插拳(punch through),让铃绕过手腕落在前臂外侧。","头顶锁定一拍,再沿原路摆回腿间。"],
+ cues:["「插拳」时机=铃失重的瞬间,早了砸腕晚了脱手","上升轨迹贴身近直线,不是抡大圆","手心提前涂镁粉,松握技术需要敢松"],
+ faults:["铃翻过来狠砸手腕,腕侧淤青","用手臂拉上去,髋部缺席","锁定位置偏前,肩部代偿"],
+ std:"单手 <b>24/16kg</b> 每侧连续 10 次,手腕无撞击。",
+ next:"壶铃技术树圆满,5 分钟壶铃抓举测试(SFG 风格)是终极试炼。"},
+
+{id:"box-jump-over",cat:"mono",sub:"体能综合",lvl:"L2",zh:"跳箱越过",en:"Box Jump Over",
+ goal:"跳上并越过箱子到另一侧,不要求箱上站直——比 Box Jump 更连贯的代谢版本,Open 高频动作。",
+ steps:["面对箱子起跳,双脚落上箱面。","不必站直,直接转身或横向跳下/走下另一侧。","落地缓冲后立即转身面对箱子(或采用侧向节奏不转身)。","循环往复,保持节奏均匀。"],
+ cues:["侧向越箱(lateral)省去转身,是高水平的节奏选择","落箱仍要全脚掌,赶时间也不赌脚感","下箱步骤化:跳上-跨下,比双跳省心率"],
+ faults:["脚跟悬空落箱打滑","越过后落地僵直,膝踝硬扛","为省事直接单脚蹭过箱角,绊倒风险"],
+ std:"标准箱连续 <b>15 次</b> 越过,节奏不断。",
+ next:"加上波比,就是 Open 经典——波比跳箱越过。"},
+
+{id:"burpee-box-jump-over",cat:"mono",sub:"体能综合",lvl:"L3",zh:"波比跳箱越过",en:"Burpee Box Jump Over",
+ goal:"波比 + 跳箱越过的无缝组合,近年 Open 的宠儿。考验的不是单个动作,而是转换之间一秒都不浪费的能力。",
+ steps:["在箱前完成一个波比(胸触地)。","起身即起跳,双脚落箱。","越过箱子落地,转身(或侧向)面对箱子。","落地直接俯身进入下一个波比。"],
+ cues:["「落地即趴下」——转换的犹豫是这个动作最大的时间黑洞","波比可以不跳不击掌(规则只要求胸触地后越箱)","按每 30 秒固定次数配速,别跟开场激情走"],
+ faults:["波比起身后站着喘 2 秒再跳","越箱后绕半天才回到起始位","胸不触地的半程波比"],
+ std:"<b>7 分钟内完成 30 次</b>(标准箱高)。",
+ next:"恭喜,你已具备 Open 体能题型的完整应对能力。"},
+
+{id:"bar-facing-burpee",cat:"mono",sub:"体能综合",lvl:"L2",zh:"面杠波比跳",en:"Bar-Facing Burpee",
+ goal:"面对杠铃做波比,然后双脚起跳越过杠铃。与杠铃动作组合时的标配过门,规则细节多,练熟省判罚。",
+ steps:["面对杠铃俯身做波比,身体与杠垂直,胸触地。","起身,双脚同时起跳越过杠铃。","落地后转身,再次面对杠铃进入下一个。","保持与杠安全距离,起跳点离杠约一小步。"],
+ cues:["「双脚起跳、双脚落地」是 Rx 判定核心(部分赛制允许跨步,赛前读规则)","趴下时身体垂直于杠,起身正好面对起跳线","用「趴-起-跳-转」四拍节奏匹配呼吸"],
+ faults:["单脚迈过杠,no-rep","跳得过高过远,白费腾空","转身路线绕远,每个多走半米"],
+ std:"<b>5 分钟内完成 30 次</b>标准面杠波比。",
+ next:"与 Thruster / 抓举组合,就是 Open 经典配方的全部。"},
+];
+
+MOVES5.forEach(m=>{ALL.push(m);byId[m.id]=m});
+
+PATHS.push(
+ {zh:"哑铃之路",en:"Dumbbell Line",desc:"从双铃推举到恶魔推举再到过头弓步,独立负重把弱侧无处遁形。",
+  chain:["db-push-press","db-thruster","db-snatch","devil-press","db-oh-lunge"]},
+ {zh:"越障之路",en:"Over-the-Box Line",desc:"从站上箱子到飞越箱子,再叠加波比——Open 题型的节奏修炼。",
+  chain:["box-jump","box-jump-over","burpee-box-jump-over"]},
+ {zh:"抓举技术支线",en:"Snatch Tech Branch",desc:"悬垂起爆+极速下钻,两个分解练习直通深蹲抓举。",
+  chain:["hang-power-snatch","snatch-balance","squat-snatch"]},
+);
+
+BADGES.push(
+ {id:"db-master",ic:"🔩",nm:"哑铃手",cond:"哑铃类全部掌握",test:s=>subDone(s,"哑铃类")},
+ {id:"twenty",ic:"🌗",nm:"半山腰",cond:"掌握 20 个动作",test:s=>cnt(s,"mastered")>=20},
+ {id:"forty",ic:"🌕",nm:"动作图书馆",cond:"掌握 40 个动作",test:s=>cnt(s,"mastered")>=40},
+);
+
+// ================= 扩展模块 5b:动画补充 + UX 优化 =================
+Object.assign(ILLUS,{
+"chin-up":{props:[["bar",18]],dur:1700,
+ A:{head:[107,33],sh:[100,42],el:[100,30],ha:[100,18],hip:[100,82],kn:[100,104],an:[100,120],toe:[106,125]},
+ B:{head:[108,14],sh:[100,26],el:[96,37],ha:[100,18],hip:[100,64],kn:[97,88],an:[100,108],toe:[105,113]},
+ cap:"反握 · 手肘更贴身 · 二头协同"},
+"c2w-handstand":{props:[["floor"],["wall",60]],dur:2400,
+ A:{head:[83,100],sh:[78,88],el:[78,108],ha:[78,128],hip:[80,52],kn:[78,34],an:[74,18],toe:[66,15]},
+ B:{head:[82,100],sh:[77,88],el:[77,108],ha:[77,128],hip:[77,51],kn:[76,33],an:[72,17],toe:[64,14]},
+ cap:"鼻尖近墙 · 脚尖轻点 · 修出直线"},
+"v-up":{props:[["floor"]],dur:1500,
+ A:{head:[52,116],sh:[64,122],el:[48,116],ha:[34,112],hip:[100,124],kn:[124,122],an:[148,120],toe:[156,118]},
+ B:{head:[70,92],sh:[78,100],el:[94,88],ha:[110,76],hip:[100,120],kn:[116,98],an:[126,80],toe:[130,72]},
+ cap:"以髋对折 · 指尖触脚背"},
+"side-plank":{props:[["floor"]],dur:2200,
+ A:{head:[66,98],sh:[74,106],el:[72,128],ha:[56,128],el2:[80,92],ha2:[86,78],hip:[106,114],kn:[128,118],an:[150,122],toe:[158,120]},
+ B:{head:[66,94],sh:[74,102],el:[72,128],ha:[56,128],el2:[80,88],ha2:[86,74],hip:[106,106],kn:[128,112],an:[150,118],toe:[158,116]},
+ cap:"髋顶向天花板 · 头到踝一条线"},
+"strict-t2b":{props:[["bar",18]],dur:2000,
+ A:{head:[107,28],sh:[100,38],el:[100,28],ha:[100,18],hip:[99,78],kn:[100,100],an:[100,116],toe:[106,121]},
+ B:{head:[108,34],sh:[100,40],el:[100,29],ha:[100,18],hip:[88,66],kn:[91,44],an:[94,26],toe:[96,19]},
+ cap:"无摆动 · 缓慢折叠触杠"},
+"l-hang":{props:[["bar",18]],dur:1900,
+ A:{head:[107,30],sh:[100,40],el:[100,29],ha:[100,18],hip:[99,80],kn:[86,70],an:[90,84],toe:[88,90]},
+ B:{head:[107,30],sh:[100,40],el:[100,29],ha:[100,18],hip:[99,80],kn:[78,80],an:[58,80],toe:[50,79]},
+ cap:"肩胛锁定 · 双腿水平伸直"},
+"good-morning":{props:[["floor"]],dur:1800,bb:true,
+ A:{head:[97,42],sh:[100,52],el:[107,62],ha:[96,49],hip:[100,88],kn:[100,110],an:[100,128],toe:[92,130]},
+ B:{head:[67,69],sh:[74,78],el:[82,86],ha:[70,74],hip:[108,88],kn:[102,110],an:[100,128],toe:[92,130]},
+ cap:"膝角不变 · 屁股向后推"},
+"hang-power-snatch":{props:[["floor"]],dur:1500,bb:true,
+ A:{head:[88,57],sh:[92,66],el:[92,84],ha:[92,100],hip:[108,82],kn:[100,106],an:[96,128],toe:[88,130]},
+ B:{head:[94,44],sh:[98,50],el:[95,32],ha:[94,16],hip:[102,92],kn:[94,106],an:[96,128],toe:[88,130]},
+ cap:"贴髋起爆 · 直接头顶锁定"},
+"snatch-balance":{props:[["floor"]],dur:1400,bb:true,
+ A:{head:[97,42],sh:[100,52],el:[107,62],ha:[96,49],hip:[100,88],kn:[100,110],an:[100,128],toe:[92,130]},
+ B:{head:[91,64],sh:[96,72],el:[93,46],ha:[90,22],hip:[103,101],kn:[85,103],an:[92,128],toe:[84,130]},
+ cap:"人下钻杠不动 · OHS 底部锁定"},
+"db-push-press":{props:[["floor"]],dur:1400,db:true,
+ A:{head:[98,46],sh:[100,58],el:[91,66],ha:[94,54],hip:[100,92],kn:[97,108],an:[100,128],toe:[92,130]},
+ B:{head:[96,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ cap:"独立负重 · 双侧同步锁定"},
+"db-thruster":{props:[["floor"]],dur:1500,db:true,
+ A:{head:[92,66],sh:[96,76],el:[81,80],ha:[87,72],hip:[104,102],kn:[85,104],an:[92,128],toe:[84,130]},
+ B:{head:[96,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},
+ cap:"铃贴肩下蹲 · 蹲起直通头顶"},
+"db-snatch":{props:[["floor"]],dur:1600,db:true,
+ A:{head:[88,59],sh:[92,68],el:[94,88],ha:[96,108],hip:[110,84],kn:[100,106],an:[96,128],toe:[88,130]},
+ B:{head:[95,42],sh:[100,50],el:[97,32],ha:[96,16],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},
+ cap:"贴身上升 · 单手过顶锁定"},
+"devil-press":{props:[["floor"]],dur:1800,db:true,
+ A:{head:[68,114],sh:[82,118],el:[88,122],ha:[78,126],hip:[118,120],kn:[140,123],an:[160,124],toe:[166,128]},
+ B:{head:[97,34],sh:[100,44],el:[103,30],ha:[105,16],hip:[100,80],kn:[100,104],an:[100,126],toe:[92,129]},
+ cap:"波比+双铃摆抓过头 · 髋是发动机"},
+"db-oh-lunge":{props:[["floor"]],dur:1700,db:true,
+ A:{head:[95,40],sh:[100,46],el:[97,28],ha:[96,14],hip:[100,86],kn:[100,108],an:[100,128],toe:[108,130],kn2:[96,108],an2:[94,128],toe2:[86,130]},
+ B:{head:[95,46],sh:[100,52],el:[97,34],ha:[96,20],hip:[100,90],kn:[116,102],an:[116,126],toe:[124,128],kn2:[88,114],an2:[76,124],toe2:[68,128]},
+ cap:"哑铃钉在天花板上 · 只动下半身"},
+"kb-snatch":{props:[["floor"]],dur:1600,kb:true,
+ A:{head:[88,59],sh:[92,68],el:[94,88],ha:[96,106],hip:[110,84],kn:[100,106],an:[96,128],toe:[88,130]},
+ B:{head:[95,42],sh:[100,50],el:[97,32],ha:[96,16],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},
+ cap:"高点插拳绕腕 · 铃不砸手"},
+"box-jump-over":{props:[["floor"],["box",86,30,40]],dur:1500,
+ A:{head:[56,58],sh:[61,66],el:[53,76],ha:[47,86],hip:[68,94],kn:[62,112],an:[66,128],toe:[74,130]},
+ B:{head:[133,58],sh:[136,68],el:[144,78],ha:[150,88],hip:[140,98],kn:[146,112],an:[142,128],toe:[134,130]},
+ cap:"跳上越过 · 不必站直 · 节奏连贯"},
+"burpee-box-jump-over":{props:[["floor"],["box",104,34,40]],dur:1900,
+ A:{head:[28,112],sh:[40,116],el:[50,118],ha:[36,126],hip:[64,118],kn:[80,121],an:[94,123],toe:[98,128]},
+ B:{head:[115,19],sh:[118,28],el:[124,38],ha:[122,48],hip:[121,50],kn:[117,70],an:[121,88],toe:[129,90]},
+ cap:"落地即趴下 · 转换零犹豫"},
+"bar-facing-burpee":{props:[["floor"],["bbfloor",130]],dur:1700,
+ A:{head:[24,112],sh:[36,116],el:[46,118],ha:[32,126],hip:[60,118],kn:[76,121],an:[90,123],toe:[94,128]},
+ B:{head:[127,42],sh:[130,52],el:[136,64],ha:[138,76],hip:[128,78],kn:[118,90],an:[124,104],toe:[128,108]},
+ cap:"双脚起跳越杠 · 趴-起-跳-转四拍"},
+});
+
+// ---------- 渲染器 v3:增加哑铃与地面杠铃道具 ----------
+illusSVG=function(id){
+  const cfg=ILLUS[id];if(!cfg)return"";
+  let props="";
+  cfg.props.forEach(p=>{
+    if(p[0]==="floor")props+=`<line x1="14" y1="130" x2="186" y2="130" class="ip"/>`;
+    else if(p[0]==="bar"){const y=p[1];props+=`<line x1="46" y1="${y}" x2="46" y2="130" class="ip"/><line x1="154" y1="${y}" x2="154" y2="130" class="ip"/><line x1="46" y1="${y}" x2="154" y2="${y}" class="ipb"/>`}
+    else if(p[0]==="wall")props+=`<line x1="${p[1]}" y1="14" x2="${p[1]}" y2="130" class="ip"/>`;
+    else if(p[0]==="rings"){const[_,x,y,sl]=p;props+=`<line x1="${x}" y1="0" x2="${x}" y2="${sl}" class="ip" stroke-dasharray="3 3"/><circle cx="${x}" cy="${y}" r="6" class="ipr"/>`}
+    else if(p[0]==="pbar"){const y=p[1];props+=`<line x1="70" y1="${y}" x2="130" y2="${y}" class="ipb"/><line x1="76" y1="${y}" x2="76" y2="130" class="ip"/><line x1="124" y1="${y}" x2="124" y2="130" class="ip"/>`}
+    else if(p[0]==="bench"){const[_,x1,x2,y]=p;props+=`<rect x="${x1}" y="${y}" width="${x2-x1}" height="9" rx="3" class="ipf"/><line x1="${x1+8}" y1="${y+9}" x2="${x1+8}" y2="130" class="ip"/><line x1="${x2-8}" y1="${y+9}" x2="${x2-8}" y2="130" class="ip"/>`}
+    else if(p[0]==="box"){const[_,x,w,h]=p;props+=`<rect x="${x}" y="${130-h}" width="${w}" height="${h}" rx="4" class="ipf" stroke="#39424F" stroke-width="2"/>`}
+    else if(p[0]==="ropeloop")props+=`<ellipse cx="100" cy="78" rx="48" ry="58" fill="none" stroke="#39424F" stroke-width="2" stroke-dasharray="4 6"/>`;
+    else if(p[0]==="climbrope"){const x=p[1];props+=`<line x1="${x}" y1="0" x2="${x}" y2="128" class="ipb" stroke-dasharray="9 3"/><circle cx="${x}" cy="126" r="3.5" class="ipf"/>`}
+    else if(p[0]==="target"){const[_,x,y]=p;props+=`<circle cx="${x-4}" cy="${y}" r="7" fill="none" stroke="var(--green)" stroke-width="2" opacity=".7"/><circle cx="${x-4}" cy="${y}" r="2" fill="var(--green)" opacity=".7"/>`}
+    else if(p[0]==="erg")props+=`<line x1="44" y1="112" x2="166" y2="110" class="ip"/><circle cx="40" cy="98" r="13" class="ipr"/><line x1="60" y1="104" x2="68" y2="120" class="ip"/><rect x="104" y="104" width="18" height="5" rx="2" class="ipf"/>`;
+    else if(p[0]==="bike")props+=`<circle cx="66" cy="106" r="20" class="ipr"/><circle cx="66" cy="106" r="3" class="ipf"/><line x1="66" y1="86" x2="90" y2="70" class="ip"/><line x1="84" y1="106" x2="122" y2="100" class="ip"/><line x1="122" y1="100" x2="124" y2="92" class="ip"/><rect x="118" y="90" width="14" height="4" rx="2" class="ipf"/><line x1="122" y1="100" x2="128" y2="128" class="ip"/>`;
+    else if(p[0]==="bbfloor"){const x=p[1];props+=`<line x1="${x-16}" y1="119" x2="${x+16}" y2="119" class="ipb"/><circle cx="${x}" cy="119" r="11" class="ifp"/><circle cx="${x}" cy="119" r="3" class="ifp2"/>`}
+  });
+  const impl=cfg.bb?'<circle id="f-plate" r="11" class="ifp"/><circle id="f-axle" r="3" class="ifp2"/>'
+    :cfg.kb?'<circle id="f-plate" r="7" class="ifk"/><circle id="f-axle" r="2" class="ifp2"/>'
+    :cfg.ball?'<circle id="f-plate" r="8" class="ifb"/>'
+    :cfg.db?'<rect id="f-plate" width="17" height="7" rx="3" class="ifd"/>':'';
+  return `<div class="illus"><svg viewBox="0 0 200 140" id="figsvg">
+    ${props}
+    <g class="ghost" id="ghostg"></g>
+    <g id="figg">
+      <circle id="f-head" r="7" class="ifh"/>
+      <path id="f-body" class="ifl"/>
+      <path id="f-arm" class="ifl"/>
+      <path id="f-arm2" class="ifl"/>
+      <path id="f-leg" class="ifl"/>
+      <path id="f-leg2" class="ifl"/>
+      ${impl}
+      <circle id="f-grip" r="2.6" class="ifg"/>
+    </g>
+  </svg><div class="illuscap">${cfg.cap} <span class="ab">A ⇄ B</span></div></div>`;
+};
+let CURDB=false;
+const _drawV2=drawPose;
+drawPose=function(A,B,t){
+  const ok=_drawV2(A,B,t);
+  if(ok&&CURDB){
+    const p=document.getElementById("f-plate"),g=document.getElementById("f-grip");
+    if(p&&p.tagName==="rect"&&g){
+      p.setAttribute("x",+g.getAttribute("cx")-8.5);
+      p.setAttribute("y",+g.getAttribute("cy")-3.5);
+    }
+  }
+  return ok;
+};
+const _startV2=startIllus;
+startIllus=function(id){
+  CURDB=!!(ILLUS[id]&&ILLUS[id].db);
+  _startV2(id);
+  if(CURDB){
+    // v2 的通用道具逻辑不认识 db,手动开启 impl 跟随并补 ghost
+    CURIMPL=false; // 防止 v2 把 rect 当 circle 设 cx/cy
+    const gh=document.getElementById("ghostg");
+    if(gh){const A=ILLUS[id].A;gh.innerHTML+=`<rect class="ifd" x="${A.ha[0]-8.5}" y="${A.ha[1]-3.5}" width="17" height="7" rx="3"/>`}
+  }
+};
+
+// ================= UX 优化 =================
+let searchQ="";
+
+// 总览条 + 搜索框 + 路径分组的 renderTree v2
+renderTree=function(){
+  const counts={
+    all:ALL.length,
+    mastered:cnt(state,"mastered"),
+    learning:cnt(state,"learning"),
+    want:cnt(state,"want"),
+  };
+  const pct=Math.round(counts.mastered/counts.all*100);
+  let html=`<div class="overall">
+    <div class="ovtext"><b>${counts.mastered}</b> / ${counts.all} 已掌握 <span class="ovpct">${pct}%</span></div>
+    <div class="ovbar"><div class="ovfill" style="width:${pct}%"></div></div>
+  </div>
+  <div class="viewtabs">
+    <button class="${treeView==="moves"?"on":""}" data-tv="moves">动作</button>
+    <button class="${treeView==="paths"?"on":""}" data-tv="paths">进阶路径</button>
+  </div>`;
+
+  if(treeView==="moves"){
+    html+=`<div class="filters">
+      <div class="searchwrap"><span class="sicon">⌕</span><input id="searchbox" placeholder="搜索动作,如 引体 / snatch / 倒立…" value="${esc(searchQ)}">${searchQ?'<button class="sclear" id="sclear">✕</button>':""}</div>
+      <div class="chiprow">
+        ${chipS("all","全部",counts.all)}${chipS("mastered","✓ 已掌握",counts.mastered)}
+        ${chipS("learning","🌙 进行中",counts.learning)}${chipS("want","○ 想学",counts.want)}
+      </div>
+      <div class="chiprow">
+        ${chipSub("all","全部分类")}${SUBCATS.map(s=>chipSub(s,s)).join("")}
+      </div>
+      <div class="chiprow">
+        ${chipL("all","全部难度")}${Object.entries(LEVELS).map(([k,v])=>chipL(k,`${k} · ${v}`)).join("")}
+      </div>
+    </div>`;
+    html+=renderCats();
+  }else{
+    const groups={gym:{label:"体操路径",items:[]},wl:{label:"举重路径",items:[]},mono:{label:"体能与单项路径",items:[]}};
+    PATHS.forEach(p=>{
+      const cat=byId[p.chain[p.chain.length-1]].cat;
+      (groups[cat]||groups.gym).items.push(p);
+    });
+    Object.values(groups).forEach(g=>{
+      if(!g.items.length)return;
+      html+=`<div class="sectionlabel">${g.label}</div>`;
+      html+=g.items.map(renderPath).join("");
+    });
+  }
+  root.innerHTML=html;
+  bindTree();
+};
+
+// 搜索过滤
+visibleMoves=function(){
+  const q=searchQ.trim().toLowerCase();
+  return ALL.filter(m=>{
+    const st=state.status[m.id]||"none";
+    if(filterStatus!=="all"&&st!==filterStatus)return false;
+    if(filterSub!=="all"&&m.sub!==filterSub)return false;
+    if(filterLvl!=="all"&&m.lvl!==filterLvl)return false;
+    if(q&&!(m.zh.toLowerCase().includes(q)||m.en.toLowerCase().includes(q)))return false;
+    return true;
+  });
+};
+
+const _bindTree5=bindTree;
+bindTree=function(){
+  _bindTree5();
+  const sb=$("#searchbox");
+  if(sb){
+    sb.oninput=()=>{
+      searchQ=sb.value;renderTree();
+      const nb=$("#searchbox");nb.focus();
+      nb.setSelectionRange(nb.value.length,nb.value.length);
+    };
+  }
+  const sc=$("#sclear");
+  if(sc)sc.onclick=()=>{searchQ="";renderTree()};
+};
+
+// 详情抽屉关闭按钮
+const _fs5=fillSheet;
+fillSheet=function(id){
+  _fs5(id);
+  const h=document.querySelector("#sheetinner .sheethead");
+  if(h&&!h.querySelector(".sheetclose")){
+    const b=document.createElement("button");
+    b.className="sheetclose";b.innerHTML="✕";b.setAttribute("aria-label","关闭");
+    b.onclick=()=>closeSheet();
+    h.appendChild(b);
+  }
+};
+
+// 连续训练天数 + 存储用量
+function calcStreak(){
+  const days=new Set();
+  Object.values(state.logs).forEach(a=>a.forEach(l=>days.add(new Date(l.ts).toDateString())));
+  (state.wods||[]).forEach(w=>days.add(new Date(w.ts).toDateString()));
+  let streak=0;const d=new Date();
+  if(!days.has(d.toDateString()))d.setDate(d.getDate()-1);
+  while(days.has(d.toDateString())){streak++;d.setDate(d.getDate()-1)}
+  return{streak,total:days.size};
+}
+const _rm5=renderMe;
+renderMe=function(){
+  _rm5();
+  const grid=root.querySelector(".statgrid");
+  const{streak,total}=calcStreak();
+  if(grid)grid.insertAdjacentHTML("beforeend",
+    `<div class="statbox"><div class="v" style="color:var(--rose)">${streak}<span class="vu">天</span></div><div class="k">连续训练</div></div>
+     <div class="statbox"><div class="v">${total}<span class="vu">天</span></div><div class="k">累计训练天数</div></div>`);
+  const db=root.querySelector(".databtns");
+  if(db){
+    const kb=JSON.stringify(state).length/1024;
+    const upct=Math.min(100,kb/5120*100);
+    db.insertAdjacentHTML("afterend",
+      `<div class="storagebar"><div class="srow"><span>本地存储用量</span><span class="mono">${kb<1024?kb.toFixed(0)+" KB":(kb/1024).toFixed(2)+" MB"} / 5 MB</span></div>
+       <div class="ovbar"><div class="ovfill" style="width:${upct}%;background:${upct>80?"var(--rose)":upct>50?"var(--amber)":"var(--green)"}"></div></div>
+       ${upct>80?'<div class="swarn">⚠ 接近上限,建议删除部分旧照片或导出备份后清理</div>':""}</div>`);
+  }
+};
+
+// ================= 扩展模块 6:动画引擎 v4 =================
+// seq: [{p:姿态, d:进入该帧的过渡时长ms, label:该段阶段名, ease:"in/out/inout", hold:到达后停顿ms}]
+// mode: "loop"(默认,末帧回首帧) | "pingpong"
+(function(){
+const S={
+"power-clean":{mode:"loop",seq:[
+ {p:{head:[83,60],sh:[88,70],el:[87,94],ha:[86,118],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},d:700,label:"放杠还原",hold:350},
+ {p:{head:[92,50],sh:[95,59],el:[95,80],ha:[95,100],hip:[105,80],kn:[99,102],an:[96,128],toe:[88,130]},d:600,label:"一拉 · 匀速过膝",ease:"inout"},
+ {p:{head:[97,36],sh:[100,46],el:[98,62],ha:[97,80],hip:[100,76],kn:[100,102],an:[98,120],toe:[92,128]},d:200,label:"二拉 · 贴髋起爆",ease:"in"},
+ {p:{head:[96,48],sh:[99,58],el:[84,64],ha:[90,54],hip:[103,92],kn:[94,104],an:[96,128],toe:[88,130]},d:220,label:"下沉转肘 · 接杠",ease:"out"},
+ {p:{head:[98,42],sh:[100,52],el:[85,58],ha:[91,49],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},d:500,label:"站直完成",ease:"inout",hold:550},
+]},
+"squat-clean":{mode:"loop",seq:[
+ {p:{head:[83,60],sh:[88,70],el:[87,94],ha:[86,118],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},d:750,label:"放杠还原",hold:350},
+ {p:{head:[92,50],sh:[95,59],el:[95,80],ha:[95,100],hip:[105,80],kn:[99,102],an:[96,128],toe:[88,130]},d:600,label:"一拉 · 匀速过膝",ease:"inout"},
+ {p:{head:[97,36],sh:[100,46],el:[98,62],ha:[97,80],hip:[100,76],kn:[100,102],an:[98,120],toe:[92,128]},d:200,label:"二拉 · 爆发伸展",ease:"in"},
+ {p:{head:[93,68],sh:[96,78],el:[81,84],ha:[88,76],hip:[104,103],kn:[85,105],an:[92,128],toe:[84,130]},d:240,label:"下钻 · 前蹲底部接杠",ease:"out",hold:300},
+ {p:{head:[98,42],sh:[100,52],el:[85,58],ha:[91,49],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},d:700,label:"前蹲站起",ease:"inout",hold:550},
+]},
+"clean-jerk":{mode:"loop",seq:[
+ {p:{head:[98,42],sh:[100,52],el:[85,58],ha:[91,49],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},d:700,label:"下放回前架",hold:450},
+ {p:{head:[98,48],sh:[100,58],el:[85,64],ha:[91,55],hip:[100,92],kn:[97,108],an:[96,128],toe:[88,130]},d:340,label:"浅蹲下沉(dip)",ease:"inout"},
+ {p:{head:[97,38],sh:[100,48],el:[88,42],ha:[92,32],hip:[100,80],kn:[100,104],an:[98,120],toe:[92,128]},d:180,label:"急停爆发蹬腿",ease:"in"},
+ {p:{head:[93,38],sh:[98,46],el:[96,29],ha:[94,15],hip:[100,82],kn:[86,98],an:[80,124],toe:[72,128]},d:220,label:"分腿下沉 · 头顶锁定",ease:"out",hold:500},
+ {p:{head:[94,38],sh:[99,44],el:[96,28],ha:[95,15],hip:[100,82],kn:[100,106],an:[98,128],toe:[91,130]},d:600,label:"收脚站直",ease:"inout",hold:450},
+]},
+"power-snatch":{mode:"loop",seq:[
+ {p:{head:[85,58],sh:[90,68],el:[89,92],ha:[88,116],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},d:700,label:"还原",hold:350},
+ {p:{head:[90,50],sh:[93,59],el:[93,78],ha:[92,96],hip:[106,80],kn:[99,102],an:[96,128],toe:[88,130]},d:600,label:"一拉 · 背角不变",ease:"inout"},
+ {p:{head:[97,36],sh:[100,46],el:[98,58],ha:[96,72],hip:[100,76],kn:[100,102],an:[98,120],toe:[92,128]},d:190,label:"贴髋起爆 · 耸肩带肘",ease:"in"},
+ {p:{head:[94,44],sh:[98,50],el:[95,32],ha:[94,16],hip:[102,92],kn:[94,106],an:[96,128],toe:[88,130]},d:220,label:"下沉 · 头顶锁定",ease:"out",hold:450},
+ {p:{head:[95,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},d:480,label:"站直",ease:"inout",hold:450},
+]},
+"squat-snatch":{mode:"loop",seq:[
+ {p:{head:[85,58],sh:[90,68],el:[89,92],ha:[88,116],hip:[112,84],kn:[100,102],an:[96,128],toe:[88,130]},d:800,label:"还原",hold:350},
+ {p:{head:[90,50],sh:[93,59],el:[93,78],ha:[92,96],hip:[106,80],kn:[99,102],an:[96,128],toe:[88,130]},d:600,label:"一拉",ease:"inout"},
+ {p:{head:[97,36],sh:[100,46],el:[98,58],ha:[96,72],hip:[100,76],kn:[100,102],an:[98,120],toe:[92,128]},d:190,label:"爆发伸展",ease:"in"},
+ {p:{head:[91,64],sh:[96,72],el:[93,46],ha:[90,22],hip:[103,101],kn:[85,103],an:[92,128],toe:[84,130]},d:250,label:"下钻 · OHS 底部接杠",ease:"out",hold:500},
+ {p:{head:[95,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},d:850,label:"过头深蹲站起",ease:"inout",hold:500},
+]},
+"thruster":{mode:"loop",seq:[
+ {p:{head:[98,42],sh:[100,52],el:[85,58],ha:[91,49],hip:[100,86],kn:[100,108],an:[96,128],toe:[88,130]},d:420,label:"下落回前架",hold:200},
+ {p:{head:[92,66],sh:[96,76],el:[81,80],ha:[87,72],hip:[104,102],kn:[85,104],an:[92,128],toe:[84,130]},d:550,label:"全深度下蹲",ease:"inout"},
+ {p:{head:[96,50],sh:[99,60],el:[84,66],ha:[90,57],hip:[102,92],kn:[92,106],an:[96,128],toe:[88,130]},d:240,label:"蹲起加速",ease:"in"},
+ {p:{head:[96,40],sh:[100,48],el:[97,30],ha:[96,14],hip:[100,86],kn:[100,108],an:[100,128],toe:[92,130]},d:200,label:"动能直通头顶",ease:"out",hold:380},
+]},
+"burpee":{mode:"loop",seq:[
+ {p:{head:[97,38],sh:[100,48],el:[104,60],ha:[106,72],hip:[100,84],kn:[100,108],an:[100,126],toe:[92,129]},d:380,label:"落地衔接",hold:150},
+ {p:{head:[88,86],sh:[92,94],el:[88,108],ha:[84,122],hip:[104,106],kn:[92,112],an:[96,128],toe:[88,130]},d:330,label:"俯身撑地",ease:"inout"},
+ {p:{head:[68,114],sh:[82,118],el:[94,120],ha:[78,128],hip:[118,120],kn:[140,123],an:[160,124],toe:[166,128]},d:300,label:"后跳俯撑 · 胸触地",ease:"out",hold:160},
+ {p:{head:[88,86],sh:[92,94],el:[88,108],ha:[84,122],hip:[104,106],kn:[92,112],an:[96,128],toe:[88,130]},d:300,label:"推起跳脚回蹲",ease:"out"},
+ {p:{head:[97,30],sh:[100,40],el:[104,26],ha:[106,14],hip:[100,74],kn:[100,98],an:[100,116],toe:[94,122]},d:280,label:"腾空伸髋击掌",ease:"out",hold:140},
+]},
+"devil-press":{mode:"loop",seq:[
+ {p:{head:[97,40],sh:[100,50],el:[102,68],ha:[103,84],hip:[100,86],kn:[100,108],an:[100,126],toe:[92,129]},d:450,label:"放回地面",hold:200},
+ {p:{head:[68,114],sh:[82,118],el:[88,122],ha:[78,126],hip:[118,120],kn:[140,123],an:[160,124],toe:[166,128]},d:520,label:"波比 · 胸触地",ease:"inout",hold:160},
+ {p:{head:[86,84],sh:[90,92],el:[88,108],ha:[84,122],hip:[102,104],kn:[90,112],an:[96,128],toe:[88,130]},d:320,label:"跳脚回蹲",ease:"out"},
+ {p:{head:[88,58],sh:[92,67],el:[94,86],ha:[96,104],hip:[110,84],kn:[100,106],an:[96,128],toe:[88,130]},d:280,label:"双铃后摆蓄力",ease:"inout"},
+ {p:{head:[97,34],sh:[100,44],el:[103,30],ha:[105,16],hip:[100,80],kn:[100,104],an:[100,126],toe:[92,129]},d:250,label:"爆发摆抓过头",ease:"in",hold:450},
+]},
+"kipping-pullup":{mode:"loop",seq:[
+ {p:{head:[101,30],sh:[96,40],el:[98,29],ha:[100,18],hip:[108,76],kn:[112,98],an:[110,118],toe:[116,122]},d:330,label:"顺势回弓形",hold:60},
+ {p:{head:[105,30],sh:[101,40],el:[99,29],ha:[100,18],hip:[92,72],kn:[88,96],an:[86,114],toe:[90,120]},d:330,label:"切换空心",ease:"inout"},
+ {p:{head:[108,16],sh:[100,28],el:[96,38],ha:[100,18],hip:[94,64],kn:[88,88],an:[84,108],toe:[88,114]},d:250,label:"髋驱动上拉",ease:"in"},
+ {p:{head:[104,36],sh:[99,46],el:[98,32],ha:[100,18],hip:[96,80],kn:[94,102],an:[92,118],toe:[96,124]},d:300,label:"推杠下放",ease:"out"},
+]},
+"butterfly-pullup":{mode:"loop",seq:[
+ {p:{head:[112,17],sh:[104,28],el:[99,36],ha:[100,18],hip:[108,64],kn:[112,88],an:[116,106],toe:[121,110]},d:240,label:"下巴过杠"},
+ {p:{head:[108,30],sh:[103,40],el:[100,30],ha:[100,18],hip:[106,76],kn:[110,98],an:[114,114],toe:[118,118]},d:280,label:"向前下落画圆",ease:"in"},
+ {p:{head:[98,33],sh:[94,44],el:[97,31],ha:[100,18],hip:[104,82],kn:[108,104],an:[112,120],toe:[117,124]},d:280,label:"后摆蓄力",ease:"inout"},
+ {p:{head:[103,24],sh:[98,34],el:[96,27],ha:[100,18],hip:[98,68],kn:[96,90],an:[94,106],toe:[98,112]},d:260,label:"贴杠上升",ease:"out"},
+]},
+"bar-mu":{mode:"loop",seq:[
+ {p:{head:[107,73],sh:[100,82],el:[100,71],ha:[100,60],hip:[96,106],kn:[92,120],an:[88,126],toe:[92,129]},d:650,label:"控制下放",hold:300},
+ {p:{head:[106,58],sh:[100,66],el:[107,64],ha:[100,60],hip:[96,92],kn:[92,108],an:[90,120],toe:[94,124]},d:260,label:"爆发深拉",ease:"in"},
+ {p:{head:[110,46],sh:[104,52],el:[108,62],ha:[100,60],hip:[100,76],kn:[96,96],an:[98,112],toe:[102,116]},d:230,label:"转换 · 肩翻越杠面",ease:"out"},
+ {p:{head:[107,22],sh:[100,32],el:[100,46],ha:[100,60],hip:[101,62],kn:[99,86],an:[101,106],toe:[106,110]},d:290,label:"压杠推起支撑",ease:"out",hold:600},
+]},
+"kipping-hspu":{mode:"loop",seq:[
+ {p:{head:[117,100],sh:[112,88],el:[112,108],ha:[112,128],hip:[118,50],kn:[130,33],an:[148,22],toe:[150,16]},d:170,label:"锁定",hold:280},
+ {p:{head:[118,124],sh:[112,106],el:[119,116],ha:[112,128],hip:[120,68],kn:[133,46],an:[150,28],toe:[152,22]},d:450,label:"控制下放头触地",ease:"inout"},
+ {p:{head:[118,124],sh:[112,106],el:[119,116],ha:[112,128],hip:[124,80],kn:[110,68],an:[120,54],toe:[124,50]},d:330,label:"折叠收膝蓄力",ease:"inout"},
+ {p:{head:[118,116],sh:[112,100],el:[117,112],ha:[112,128],hip:[120,64],kn:[134,44],an:[150,26],toe:[152,20]},d:200,label:"蹬腿+推手同步爆发",ease:"in"},
+]},
+"russian-swing":{mode:"loop",seq:[
+ {p:{head:[91,59],sh:[95,68],el:[96,84],ha:[97,100],hip:[112,82],kn:[103,104],an:[98,128],toe:[90,130]},d:360,label:"顺势回摆铰链"},
+ {p:{head:[98,42],sh:[100,52],el:[96,62],ha:[92,72],hip:[100,86],kn:[100,108],an:[98,128],toe:[90,130]},d:200,label:"爆发伸髋夹臀",ease:"in"},
+ {p:{head:[98,42],sh:[100,52],el:[87,52],ha:[74,52],hip:[100,86],kn:[100,108],an:[98,128],toe:[90,130]},d:230,label:"壶铃失重浮起",ease:"out",hold:90},
+]},
+"t2b":{mode:"loop",seq:[
+ {p:{head:[101,30],sh:[96,40],el:[98,29],ha:[100,18],hip:[108,76],kn:[112,98],an:[110,118],toe:[116,122]},d:280,label:"弓形蓄力",hold:50},
+ {p:{head:[107,28],sh:[100,36],el:[100,27],ha:[100,18],hip:[94,70],kn:[92,90],an:[90,106],toe:[94,110]},d:260,label:"压杠收髋",ease:"inout"},
+ {p:{head:[108,34],sh:[100,40],el:[100,29],ha:[100,18],hip:[88,66],kn:[91,44],an:[94,26],toe:[96,19]},d:220,label:"双脚触杠",ease:"out"},
+ {p:{head:[104,30],sh:[98,38],el:[99,28],ha:[100,18],hip:[97,74],kn:[96,98],an:[94,114],toe:[98,118]},d:300,label:"主动后送下放",ease:"in"},
+]},
+"row-erg":{mode:"loop",seq:[
+ {p:{head:[88,74],sh:[95,83],el:[79,89],ha:[64,93],hip:[110,107],kn:[78,90],an:[64,111],toe:[60,105]},d:420,label:"屈膝向前回入水位"},
+ {p:{head:[107,73],sh:[112,82],el:[96,87],ha:[80,90],hip:[120,107],kn:[90,104],an:[64,111],toe:[60,105]},d:280,label:"腿蹬 60%",ease:"in"},
+ {p:{head:[148,72],sh:[142,81],el:[133,92],ha:[122,89],hip:[126,107],kn:[92,105],an:[64,111],toe:[60,105]},d:220,label:"髋展 + 臂拉到下肋",ease:"out",hold:120},
+ {p:{head:[136,73],sh:[130,82],el:[114,86],ha:[98,90],hip:[122,107],kn:[90,104],an:[64,111],toe:[60,105]},d:300,label:"回桨 · 先伸臂(1:2 节奏)",ease:"inout"},
+]},
+"box-jump":{mode:"loop",seq:[
+ {p:{head:[76,56],sh:[81,65],el:[73,76],ha:[67,86],hip:[88,94],kn:[82,112],an:[86,128],toe:[94,130]},d:550,label:"走下箱 · 回到起点",hold:250},
+ {p:{head:[106,16],sh:[110,26],el:[102,38],ha:[98,48],hip:[112,52],kn:[104,68],an:[110,82],toe:[116,82]},d:250,label:"起跳收髋提膝",ease:"in"},
+ {p:{head:[131,14],sh:[135,24],el:[141,34],ha:[139,46],hip:[137,50],kn:[135,68],an:[138,82],toe:[146,84]},d:200,label:"全掌轻落 · 箱上站直",ease:"out",hold:550},
+]},
+"pull-over":{mode:"loop",seq:[
+ {p:{head:[107,56],sh:[100,64],el:[100,52],ha:[100,40],hip:[100,92],kn:[100,108],an:[100,120],toe:[104,124]},d:600,label:"控制还原",hold:250},
+ {p:{head:[107,48],sh:[100,56],el:[98,48],ha:[100,40],hip:[92,72],kn:[84,58],an:[88,70],toe:[86,76]},d:380,label:"拉杠+收腹后倒",ease:"inout"},
+ {p:{head:[94,62],sh:[100,56],el:[100,48],ha:[100,40],hip:[100,38],kn:[106,30],an:[112,38],toe:[114,44]},d:300,label:"髋上送 · 腹贴杠翻转",ease:"inout"},
+ {p:{head:[107,16],sh:[100,26],el:[100,33],ha:[100,40],hip:[101,56],kn:[99,80],an:[101,100],toe:[106,104]},d:280,label:"翻上支撑",ease:"out",hold:500},
+]},
+"wall-walk":{mode:"pingpong",seq:[
+ {p:{head:[55,90],sh:[64,96],el:[62,112],ha:[60,128],hip:[100,106],kn:[124,112],an:[152,118],toe:[158,122]},d:850,label:"俯撑起点"},
+ {p:{head:[97,100],sh:[94,92],el:[92,110],ha:[90,128],hip:[112,72],kn:[124,56],an:[150,46],toe:[154,40]},d:850,label:"手脚交替 · 同步上墙",ease:"inout"},
+ {p:{head:[128,98],sh:[124,88],el:[122,108],ha:[120,128],hip:[128,52],kn:[136,36],an:[152,22],toe:[157,16]},d:850,label:"胸贴墙 · 停 2 秒",ease:"inout",hold:600},
+]},
+};
+Object.entries(S).forEach(([id,cfg])=>{
+  if(ILLUS[id])Object.assign(ILLUS[id],cfg);
+});
+})();
+
+// ---------- illusSVG v4:轨迹线 + 播放控制 + 阶段标签 ----------
+const _illusSVG_v3=illusSVG;
+illusSVG=function(id){
+  let s=_illusSVG_v3(id);
+  const cfg=ILLUS[id];if(!cfg)return s;
+  const hasImpl=!!(cfg.bb||cfg.kb||cfg.ball||cfg.db);
+  // 轨迹线置于 ghost 之后、人形之前
+  s=s.replace('<g id="figg">','<path id="f-trail" class="iftrail"/><g id="figg">');
+  // 控制条插在说明文字前
+  const ctl=`<div class="illusctl">
+    <button id="ic-play" title="暂停/播放">⏸</button>
+    <button id="ic-speed" title="播放速度">1×</button>
+    ${hasImpl?'<button id="ic-trail" class="on" title="器械轨迹">轨迹</button>':""}
+    <span id="ic-phase" class="phase"></span>
+  </div>`;
+  s=s.replace('<div class="illuscap">',ctl+'<div class="illuscap">');
+  return s;
+};
+
+// ---------- 引擎 v4 ----------
+const animCtl={playing:true,speed:1,trail:true};
+startIllus=function(id){
+  stopIllus();
+  const cfg=ILLUS[id];if(!cfg)return;
+  // 道具标记(供 drawPose 链使用)
+  CURIMPL=!!(cfg.bb||cfg.kb||cfg.ball);
+  CURDB=!!cfg.db;
+  // 统一时间轴:无 seq 的旧动作转两帧序列
+  const frames=cfg.seq||[
+    {p:cfg.A,d:cfg.dur,label:"",hold:420},
+    {p:cfg.B,d:cfg.dur,label:"",hold:420,ease:"inout"},
+  ];
+  const mode=cfg.mode||(cfg.seq?"loop":"loop");
+  // 展开为片段 [{from,to,d,ease,label,hold}]
+  const segs=[];
+  const n=frames.length;
+  if(mode==="pingpong"){
+    for(let i=1;i<n;i++)segs.push({from:frames[i-1].p,to:frames[i].p,d:frames[i].d,ease:frames[i].ease,label:frames[i].label,hold:frames[i].hold||0});
+    for(let i=n-2;i>=0;i--)segs.push({from:frames[i+1].p,to:frames[i].p,d:frames[i+1].d,ease:frames[i+1].ease,label:frames[i+1].label,hold:frames[i].hold||0});
+  }else{
+    for(let i=1;i<n;i++)segs.push({from:frames[i-1].p,to:frames[i].p,d:frames[i].d,ease:frames[i].ease,label:frames[i].label,hold:frames[i].hold||0});
+    segs.push({from:frames[n-1].p,to:frames[0].p,d:frames[0].d,ease:frames[0].ease,label:frames[0].label,hold:frames[0].hold||0});
+  }
+  const cycle=segs.reduce((a,s)=>a+s.d+s.hold,0);
+  // 残影:首帧
+  const ghost=document.getElementById("ghostg");
+  if(ghost){
+    const A=frames[0].p;
+    let g2=A.el2?`<path class="ifl" d="M${A.sh} L${A.el2} L${A.ha2}"/>`:"";
+    let l2=A.kn2?`<path class="ifl" d="M${A.hip} L${A.kn2} L${A.an2} L${A.toe2}"/>`:"";
+    let gi=cfg.bb?`<circle class="ifp" cx="${A.ha[0]}" cy="${A.ha[1]}" r="11"/>`
+          :cfg.kb?`<circle class="ifk" cx="${A.ha[0]}" cy="${A.ha[1]}" r="7"/>`
+          :cfg.ball?`<circle class="ifb" cx="${A.ha[0]}" cy="${A.ha[1]}" r="8"/>`
+          :cfg.db?`<rect class="ifd" x="${A.ha[0]-8.5}" y="${A.ha[1]-3.5}" width="17" height="7" rx="3"/>`:"";
+    ghost.innerHTML=`<circle class="ifh" cx="${A.head[0]}" cy="${A.head[1]}" r="7"/>
+      <path class="ifl" d="M${A.sh} L${A.hip}"/><path class="ifl" d="M${A.sh} L${A.el} L${A.ha}"/>${g2}
+      <path class="ifl" d="M${A.hip} L${A.kn} L${A.an} L${A.toe}"/>${l2}${gi}`;
+  }
+  const EASE={
+    in:t=>t*t,
+    out:t=>1-(1-t)*(1-t),
+    inout:t=>(1-Math.cos(Math.PI*t))/2,
+  };
+  const phaseEl=document.getElementById("ic-phase");
+  const trailEl=document.getElementById("f-trail");
+  const hasImpl=CURIMPL||CURDB;
+  let trailPts=[],lastVt=-1;
+  // 控制绑定
+  const pb=document.getElementById("ic-play");
+  if(pb)pb.onclick=()=>{animCtl.playing=!animCtl.playing;pb.textContent=animCtl.playing?"⏸":"▶"};
+  const spb=document.getElementById("ic-speed");
+  if(spb)spb.onclick=()=>{animCtl.speed=animCtl.speed===1?0.4:1;spb.textContent=animCtl.speed===1?"1×":"慢"};
+  const tb=document.getElementById("ic-trail");
+  if(tb)tb.onclick=()=>{animCtl.trail=!animCtl.trail;tb.classList.toggle("on",animCtl.trail);
+    if(!animCtl.trail&&trailEl){trailPts=[];trailEl.setAttribute("d","")}};
+  // 减弱动效:静态显示末关键帧
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    drawPose(frames[0].p,frames[n-1].p,1);
+    if(phaseEl)phaseEl.textContent=frames[n-1].label||"";
+    return;
+  }
+  let vt=0,lastNow=performance.now(),curLabel=null;
+  function frame(now){
+    const dt=Math.min(now-lastNow,100);lastNow=now;
+    if(animCtl.playing)vt+=dt*animCtl.speed;
+    const e=vt%cycle;
+    if(e<lastVt){trailPts=[]}// 新循环清轨迹
+    lastVt=e;
+    // 定位片段
+    let acc=0,seg=segs[0],t=0,inHold=false;
+    for(const s of segs){
+      if(e<acc+s.d){seg=s;t=(e-acc)/s.d;break}
+      acc+=s.d;
+      if(e<acc+s.hold){seg=s;t=1;inHold=true;break}
+      acc+=s.hold;
+    }
+    const ease=EASE[seg.ease||"inout"]||EASE.inout;
+    if(!drawPose(seg.from,seg.to,ease(t))){illusRAF=null;return}
+    // 阶段标签
+    if(phaseEl&&seg.label!==curLabel){curLabel=seg.label;phaseEl.textContent=seg.label||""}
+    // 器械轨迹
+    if(hasImpl&&animCtl.trail&&trailEl&&animCtl.playing&&!inHold){
+      const g=document.getElementById("f-grip");
+      if(g){
+        trailPts.push([+g.getAttribute("cx"),+g.getAttribute("cy")]);
+        if(trailPts.length>240)trailPts.shift();
+        if(trailPts.length>1)trailEl.setAttribute("d","M"+trailPts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L"));
+      }
+    }
+    illusRAF=requestAnimationFrame(frame);
+  }
+  illusRAF=requestAnimationFrame(frame);
+};
+
+// ================= 扩展模块 7:桌面端布局 =================
+// 侧边导航(桌面显示,移动端隐藏)
+document.body.insertAdjacentHTML("afterbegin",`
+<aside class="sidenav">
+  <div class="brand">
+    <div class="blogo">⚡</div>
+    <div><div class="bzh">技能树</div><div class="ben">CrossFit Skill Tree</div></div>
+  </div>
+  <nav class="sidenav-nav">
+    <button data-stab="tree" class="on"><span>🌳</span>技能树</button>
+    <button data-stab="log"><span>📒</span>训练记录</button>
+    <button data-stab="me"><span>🏅</span>我的成就</button>
+  </nav>
+  <div class="sideprog">
+    <div class="sp-row"><span>总进度</span><span class="mono" id="sn-pct">0%</span></div>
+    <div class="ovbar"><div class="ovfill" id="sn-fill" style="width:0%"></div></div>
+    <div class="sp-stats">
+      <div><b id="sn-m">0</b><span>已掌握</span></div>
+      <div><b id="sn-s">0</b><span>连续天数</span></div>
+      <div><b id="sn-c">0</b><span>累计打卡</span></div>
+    </div>
+  </div>
+  <div class="sidefoot">本地数据 · 离线可用 · 84 动作</div>
+</aside>`);
+
+document.querySelectorAll("[data-stab]").forEach(b=>b.onclick=()=>{tab=b.dataset.stab;render()});
+
+// render 钩子:同步侧栏状态/数据 + body[data-tab](供记录页双栏CSS定位)
+const _render7=render;
+render=function(){
+  _render7();
+  document.body.dataset.tab=tab;
+  document.querySelectorAll("[data-stab]").forEach(b=>b.classList.toggle("on",b.dataset.stab===tab));
+  const m=cnt(state,"mastered");
+  const pct=Math.round(m/ALL.length*100);
+  const st=(typeof calcStreak==="function")?calcStreak():{streak:0};
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set("sn-pct",pct+"%");set("sn-m",m);set("sn-s",st.streak);set("sn-c",logTotal(state)+(state.wods||[]).length);
+  const f=document.getElementById("sn-fill");if(f)f.style.width=pct+"%";
+};
+
+// renderTree v4:路径卡用网格容器包装(桌面双列)
+renderTree=function(){
+  const counts={all:ALL.length,mastered:cnt(state,"mastered"),learning:cnt(state,"learning"),want:cnt(state,"want")};
+  const pct=Math.round(counts.mastered/counts.all*100);
+  let html=`<div class="overall">
+    <div class="ovtext"><b>${counts.mastered}</b> / ${counts.all} 已掌握 <span class="ovpct">${pct}%</span></div>
+    <div class="ovbar"><div class="ovfill" style="width:${pct}%"></div></div>
+  </div>
+  <div class="viewtabs">
+    <button class="${treeView==="moves"?"on":""}" data-tv="moves">动作</button>
+    <button class="${treeView==="paths"?"on":""}" data-tv="paths">进阶路径</button>
+  </div>`;
+  if(treeView==="moves"){
+    html+=`<div class="filters">
+      <div class="searchwrap"><span class="sicon">⌕</span><input id="searchbox" placeholder="搜索动作,如 引体 / snatch / 倒立…" value="${esc(searchQ)}">${searchQ?'<button class="sclear" id="sclear">✕</button>':""}</div>
+      <div class="chiprow">
+        ${chipS("all","全部",counts.all)}${chipS("mastered","✓ 已掌握",counts.mastered)}
+        ${chipS("learning","🌙 进行中",counts.learning)}${chipS("want","○ 想学",counts.want)}
+      </div>
+      <div class="chiprow">
+        ${chipSub("all","全部分类")}${SUBCATS.map(s=>chipSub(s,s)).join("")}
+      </div>
+      <div class="chiprow">
+        ${chipL("all","全部难度")}${Object.entries(LEVELS).map(([k,v])=>chipL(k,`${k} · ${v}`)).join("")}
+      </div>
+    </div>`;
+    html+=renderCats();
+  }else{
+    const groups={gym:{label:"体操路径",items:[]},wl:{label:"举重路径",items:[]},mono:{label:"体能与单项路径",items:[]}};
+    PATHS.forEach(p=>{
+      const cat=byId[p.chain[p.chain.length-1]].cat;
+      (groups[cat]||groups.gym).items.push(p);
+    });
+    Object.values(groups).forEach(g=>{
+      if(!g.items.length)return;
+      html+=`<div class="sectionlabel">${g.label}</div><div class="pathgrid">${g.items.map(renderPath).join("")}</div>`;
+    });
+  }
+  root.innerHTML=html;
+  bindTree();
+};
+
+// Esc 关闭详情
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&document.getElementById("sheet").classList.contains("show"))closeSheet();
+});
+
+// ================= 扩展模块 8:GitHub 云同步 + 登录页 =================
+const CKEY="cf-skilltree-cloud", LMKEY="cf-skilltree-localmode";
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+let cloud=null;
+try{cloud=JSON.parse(lsGet(CKEY)||"null")}catch(e){}
+let cloudSha=null,pushTimer=null,syncState=(cloud&&cloud.token)?"idle":"local",syncTime=null;
+
+function cloudOn(){return !!(cloud&&cloud.token&&cloud.owner&&cloud.repo)}
+function ghHeaders(){return{Authorization:"Bearer "+cloud.token,Accept:"application/vnd.github+json"}}
+function ghUrl(){return`https://api.github.com/repos/${cloud.owner}/${cloud.repo}/contents/${cloud.path||"data.json"}`}
+function b64e(s){return btoa(unescape(encodeURIComponent(s)))}
+function b64d(s){return decodeURIComponent(escape(atob(String(s).replace(/\s/g,""))))}
+
+function setSync(st,msg){
+  syncState=st;if(st==="ok")syncTime=new Date();
+  const chip=document.getElementById("syncchip");
+  if(chip){
+    const map={local:["○ 本地模式","var(--faint)"],idle:["· 待同步","var(--dim)"],
+      syncing:["⟳ 同步中…","var(--blue)"],ok:["✓ 已同步 "+(syncTime?syncTime.toTimeString().slice(0,5):""),"var(--green)"],
+      err:["⚠ "+(msg||"同步失败"),"var(--amber)"]};
+    const[t,c]=map[st]||map.idle;chip.textContent=t;chip.style.color=c;
+  }
+  const ms=document.getElementById("mysync");if(ms)renderSyncCard();
+}
+
+async function cloudPull(force){
+  if(!cloudOn())return;
+  setSync("syncing");
+  try{
+    const r=await fetch(ghUrl()+"?ref="+(cloud.branch||"main"),{headers:ghHeaders()});
+    if(r.status===404){cloudSha=null;setSync("idle");return null}
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const d=await r.json();cloudSha=d.sha;
+    const remote=JSON.parse(b64d(d.content));
+    if(force||(remote._ts||0)>(state._ts||0)){
+      const localPhotos={};(state.wods||[]).forEach(w=>{if(w.photo)localPhotos[w.ts]=w.photo});
+      state=Object.assign({},state,remote);
+      state.status=remote.status||{};state.logs=remote.logs||{};
+      state.badges=remote.badges||{};state.wods=remote.wods||[];
+      state.wodCache=remote.wodCache||{};
+      (state.wods||[]).forEach(w=>{if(!w.photo&&localPhotos[w.ts])w.photo=localPhotos[w.ts]});
+      lsSet(KEY,JSON.stringify(state))
+      render();
+      toast("✓ 已从云端拉取最新数据");
+    }
+    setSync("ok");return remote;
+  }catch(e){setSync("err",e.message);throw e}
+}
+
+async function cloudPush(){
+  if(!cloudOn())return;
+  setSync("syncing");
+  try{
+    state._ts=Date.now();
+    lsSet(KEY,JSON.stringify(state))
+    let body=state;
+    if(!cloud.syncPhotos){
+      body=JSON.parse(JSON.stringify(state));
+      (body.wods||[]).forEach(w=>{delete w.photo});
+    }
+    const content=b64e(JSON.stringify(body));
+    const doPut=()=>fetch(ghUrl(),{method:"PUT",headers:Object.assign({"Content-Type":"application/json"},ghHeaders()),
+      body:JSON.stringify(Object.assign({message:"skilltree sync "+new Date().toISOString(),
+        content,branch:cloud.branch||"main"},cloudSha?{sha:cloudSha}:{}))});
+    let r=await doPut();
+    if(r.status===409||r.status===422){
+      const g=await fetch(ghUrl()+"?ref="+(cloud.branch||"main"),{headers:ghHeaders()});
+      if(g.ok){cloudSha=(await g.json()).sha;r=await doPut()}
+    }
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    cloudSha=(await r.json()).content.sha;
+    setSync("ok");
+  }catch(e){setSync("err",e.message)}
+}
+function schedulePush(){
+  if(!cloudOn())return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>cloudPush(),4000);
+}
+// save 钩子:本地保存后 4 秒静默推送云端
+const _saveCloud=save;
+save=function(){_saveCloud();schedulePush()};
+
+// ---------- 登录页 ----------
+function showLogin(forced){
+  if(document.getElementById("loginmask"))return;
+  const div=document.createElement("div");
+  div.id="loginmask";div.className="loginmask";
+  div.innerHTML=`<div class="logincard">
+    <div class="loginlogo">⚡</div>
+    <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+    <p class="logindesc">使用 GitHub 同步训练数据,任何设备登录即恢复全部进度。<br>数据保存在<b>你自己的私有仓库</b>中,Token 仅存于本机浏览器。</p>
+    <div class="loginform">
+      <input id="lg-owner" placeholder="GitHub 用户名" value="${esc(cloud?.owner||"")}" autocomplete="username">
+      <input id="lg-repo" placeholder="数据仓库名(建议私有,如 skilltree-data)" value="${esc(cloud?.repo||"skilltree-data")}">
+      <input id="lg-token" type="password" placeholder="Fine-grained Token(仅需该仓库 Contents 读写权限)" value="${esc(cloud?.token||"")}">
+      <label class="loginck"><input type="checkbox" id="lg-photos" ${cloud?.syncPhotos?"checked":""}> 同步白板照片(体积较大,默认仅同步文字数据)</label>
+      <button class="logsave" id="lg-go">连接 GitHub 并同步</button>
+      <button class="loginskip" id="lg-skip">${forced?"返回":"暂不登录,仅本地使用"}</button>
+      <div class="loginhint" id="lg-hint">Token 获取:GitHub → Settings → Developer settings → Fine-grained tokens → 只勾选数据仓库 + Contents Read/Write</div>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+  document.getElementById("lg-skip").onclick=()=>{
+    lsSet(LMKEY,"1");div.remove();
+  };
+  document.getElementById("lg-go").onclick=async()=>{
+    const owner=document.getElementById("lg-owner").value.trim();
+    const repo=document.getElementById("lg-repo").value.trim();
+    const token=document.getElementById("lg-token").value.trim();
+    const hint=document.getElementById("lg-hint");
+    if(!owner||!repo||!token){hint.textContent="⚠ 三项都需要填写";hint.style.color="var(--amber)";return}
+    cloud={owner,repo,token,branch:"main",path:"data.json",
+      syncPhotos:document.getElementById("lg-photos").checked,auto:true};
+    const btn=document.getElementById("lg-go");btn.textContent="连接中…";btn.disabled=true;
+    try{
+      const remote=await cloudPull(false);
+      if(remote===null)await cloudPush(); // 仓库还没有 data.json,首次推送
+      lsSet(CKEY,JSON.stringify(cloud));
+      lsDel(LMKEY);
+      div.remove();toast("✓ GitHub 已连接,数据自动同步");render();
+    }catch(e){
+      cloud=null;
+      hint.textContent="⚠ 连接失败:"+e.message+"(检查用户名/仓库名/Token权限,仓库需已创建)";
+      hint.style.color="var(--amber)";
+      btn.textContent="连接 GitHub 并同步";btn.disabled=false;
+    }
+  };
+}
+
+// 首次进入且未选择本地模式 → 显示登录页
+if(!cloudOn()&&!lsGet(LMKEY)){
+  setTimeout(()=>showLogin(false),400);
+}
+// 已登录 → 启动时拉取云端较新数据
+if(cloudOn()){setTimeout(()=>cloudPull(false).catch(()=>{}),600)}
+
+// ---------- 侧栏同步状态 ----------
+(function(){
+  const foot=document.querySelector(".sidefoot");
+  if(foot)foot.insertAdjacentHTML("beforebegin",'<div class="syncchipwrap"><span id="syncchip" class="syncchip"></span></div>');
+  setSync(syncState);
+})();
+
+// ---------- 我的页:云同步管理卡 ----------
+function renderSyncCard(){
+  const el=document.getElementById("mysync");if(!el)return;
+  el.innerHTML=cloudOn()?`
+    <div class="pathdesc">已连接 <b style="color:var(--text)">${esc(cloud.owner)}/${esc(cloud.repo)}</b> · 修改后 4 秒自动推送 · 照片同步:${cloud.syncPhotos?"开":"关"}</div>
+    <div class="databtns" style="margin-top:10px">
+      <button id="cs-now">立即同步</button>
+      <button id="cs-pull">拉取云端覆盖本地</button>
+    </div>
+    <div class="databtns">
+      <button id="cs-push">推送本地覆盖云端</button>
+      <button id="cs-out" style="color:var(--rose)">退出登录</button>
+    </div>`
+  :`<div class="pathdesc">本地模式:数据仅存于此浏览器。连接 GitHub 后可多设备同步、永不丢失。</div>
+    <div class="databtns" style="margin-top:10px"><button id="cs-login" style="color:var(--green);border-color:var(--green-deep)">连接 GitHub</button></div>`;
+  const q=id=>document.getElementById(id);
+  if(q("cs-login"))q("cs-login").onclick=()=>showLogin(true);
+  if(q("cs-now"))q("cs-now").onclick=async()=>{try{await cloudPull(false);await cloudPush()}catch(e){}};
+  if(q("cs-pull"))q("cs-pull").onclick=async()=>{if(confirm("用云端数据覆盖本地?本地未同步的修改将丢失。"))try{await cloudPull(true)}catch(e){}};
+  if(q("cs-push"))q("cs-push").onclick=()=>cloudPush();
+  if(q("cs-out"))q("cs-out").onclick=()=>{
+    if(!confirm("退出登录?本地数据保留,仅断开云同步。"))return;
+    cloud=null;lsDel(CKEY);lsSet(LMKEY,"1");
+    setSync("local");renderMe();toast("已退出,转为本地模式");
+  };
+}
+const _rmCloud=renderMe;
+renderMe=function(){
+  _rmCloud();
+  root.insertAdjacentHTML("beforeend",'<div class="sectionlabel">云同步 · GitHub</div><div class="pathcard" id="mysync" style="padding:16px 18px"></div>');
+  renderSyncCard();
+};
+
+// ================= 扩展模块 9:用户名密码登录(经 Worker) =================
+// 覆盖 ext8 的 token 直连方案。cloud = {server,user,token(会话票据),exp,syncPhotos}
+// 部署者在下方填入自己的 Worker 地址后,登录页不再显示服务器输入框
+const DEFAULT_SERVER="https://green-union-9e8a.brandon199459.workers.dev"; // 例如 "https://skilltree.yourname.workers.dev"
+
+cloudOn=function(){return !!(cloud&&cloud.server&&cloud.token&&(!cloud.exp||Date.now()<cloud.exp))}
+
+cloudPull=async function(force){
+  if(!cloudOn())return;
+  setSync("syncing");
+  try{
+    const r=await fetch(cloud.server.replace(/\/$/,"")+"/data",{headers:{Authorization:"Bearer "+cloud.token}});
+    if(r.status===401){sessionExpired();return}
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const{data:remote}=await r.json();
+    if(remote===null){setSync("idle");return null}
+    if(force||(remote._ts||0)>(state._ts||0)){
+      const localPhotos={};(state.wods||[]).forEach(w=>{if(w.photo)localPhotos[w.ts]=w.photo});
+      state=Object.assign({},state,remote);
+      state.status=remote.status||{};state.logs=remote.logs||{};
+      state.badges=remote.badges||{};state.wods=remote.wods||[];
+      state.wodCache=remote.wodCache||{};
+      (state.wods||[]).forEach(w=>{if(!w.photo&&localPhotos[w.ts])w.photo=localPhotos[w.ts]});
+      lsSet(KEY,JSON.stringify(state));
+      render();
+      toast("✓ 已从云端拉取最新数据");
+    }
+    setSync("ok");return remote;
+  }catch(e){setSync("err",e.message);throw e}
+};
+
+cloudPush=async function(){
+  if(!cloudOn())return;
+  setSync("syncing");
+  try{
+    state._ts=Date.now();
+    lsSet(KEY,JSON.stringify(state));
+    let body=state;
+    if(!cloud.syncPhotos){
+      body=JSON.parse(JSON.stringify(state));
+      (body.wods||[]).forEach(w=>{delete w.photo});
+    }
+    const r=await fetch(cloud.server.replace(/\/$/,"")+"/data",{
+      method:"PUT",headers:{Authorization:"Bearer "+cloud.token,"Content-Type":"application/json"},
+      body:JSON.stringify(body)});
+    if(r.status===401){sessionExpired();return}
+    if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||"HTTP "+r.status)}
+    setSync("ok");
+  }catch(e){setSync("err",e.message)}
+};
+
+function sessionExpired(){
+  setSync("err","会话过期,请重新登录");
+  cloud.token=null;lsSet(CKEY,JSON.stringify(cloud));
+  showLogin(true);
+}
+
+// ---------- 登录页 v2:用户名 + 密码 ----------
+showLogin=function(forced){
+  if(document.getElementById("loginmask"))return;
+  const server=cloud?.server||DEFAULT_SERVER;
+  const div=document.createElement("div");
+  div.id="loginmask";div.className="loginmask";
+  div.innerHTML=`<div class="logincard">
+    <div class="loginlogo">⚡</div>
+    <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+    <p class="logindesc">登录后训练数据云端同步,任何设备恢复全部进度。</p>
+    <div class="loginform">
+      ${DEFAULT_SERVER?"":`<input id="lg-server" placeholder="服务器地址(Worker URL,管理员提供)" value="${esc(server)}" autocomplete="url">`}
+      <input id="lg-user" placeholder="用户名" value="${esc(cloud?.user||"")}" autocomplete="username">
+      <input id="lg-pass" type="password" placeholder="密码" autocomplete="current-password">
+      <label class="loginck"><input type="checkbox" id="lg-photos" ${cloud?.syncPhotos?"checked":""}> 同步白板照片(体积较大,默认仅同步文字)</label>
+      <button class="logsave" id="lg-go">登 录</button>
+      <button class="loginskip" id="lg-skip">${forced?"稍后再说":"暂不登录,仅本地使用"}</button>
+      <div class="loginhint" id="lg-hint">没有账号?联系管理员添加用户。</div>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+  const hint=document.getElementById("lg-hint");
+  document.getElementById("lg-skip").onclick=()=>{lsSet(LMKEY,"1");div.remove()};
+  const doLogin=async()=>{
+    const sv=(DEFAULT_SERVER||document.getElementById("lg-server").value.trim()).replace(/\/$/,"");
+    const user=document.getElementById("lg-user").value.trim();
+    const pass=document.getElementById("lg-pass").value;
+    if(!sv||!user||!pass){hint.textContent="⚠ 请填写完整";hint.style.color="var(--amber)";return}
+    const btn=document.getElementById("lg-go");btn.textContent="登录中…";btn.disabled=true;
+    try{
+      const r=await fetch(sv+"/login",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({user,pass})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error||"HTTP "+r.status);
+      cloud={server:sv,user,token:d.token,exp:d.exp,
+        syncPhotos:document.getElementById("lg-photos").checked,auto:true};
+      lsSet(CKEY,JSON.stringify(cloud));lsDel(LMKEY);
+      div.remove();
+      const remote=await cloudPull(false).catch(()=>undefined);
+      if(remote===null)await cloudPush(); // 新用户首次推送建档
+      toast("✓ 欢迎,"+user+"!数据自动同步中");render();
+    }catch(e){
+      hint.textContent="⚠ "+e.message;hint.style.color="var(--amber)";
+      btn.textContent="登 录";btn.disabled=false;
+    }
+  };
+  document.getElementById("lg-go").onclick=doLogin;
+  div.querySelectorAll("input").forEach(i=>i.onkeydown=e=>{if(e.key==="Enter")doLogin()});
+};
+
+// ---------- 我的页云管理卡 v2 ----------
+renderSyncCard=function(){
+  const el=document.getElementById("mysync");if(!el)return;
+  el.innerHTML=cloudOn()?`
+    <div class="pathdesc">已登录 <b style="color:var(--text)">${esc(cloud.user)}</b> · 修改后 4 秒自动同步 · 照片同步:${cloud.syncPhotos?"开":"关"} · 会话有效至 ${new Date(cloud.exp).toLocaleDateString("zh-CN")}</div>
+    <div class="databtns" style="margin-top:10px">
+      <button id="cs-now">立即同步</button>
+      <button id="cs-pull">拉取云端覆盖本地</button>
+    </div>
+    <div class="databtns">
+      <button id="cs-push">推送本地覆盖云端</button>
+      <button id="cs-out" style="color:var(--rose)">退出登录</button>
+    </div>`
+  :`<div class="pathdesc">本地模式:数据仅存于此浏览器。登录后可多设备同步、永不丢失。</div>
+    <div class="databtns" style="margin-top:10px"><button id="cs-login" style="color:var(--green);border-color:var(--green-deep)">登录</button></div>`;
+  const q=id=>document.getElementById(id);
+  if(q("cs-login"))q("cs-login").onclick=()=>showLogin(true);
+  if(q("cs-now"))q("cs-now").onclick=async()=>{try{await cloudPull(false);await cloudPush()}catch(e){}};
+  if(q("cs-pull"))q("cs-pull").onclick=async()=>{if(confirm("用云端数据覆盖本地?本地未同步的修改将丢失。"))try{await cloudPull(true)}catch(e){}};
+  if(q("cs-push"))q("cs-push").onclick=()=>cloudPush();
+  if(q("cs-out"))q("cs-out").onclick=()=>{
+    if(!confirm("退出登录?本地数据保留,仅断开云同步。"))return;
+    cloud=null;lsDel(CKEY);lsSet(LMKEY,"1");
+    setSync("local");renderMe();toast("已退出,转为本地模式");
+  };
+};
+// 状态修正:旧 token 配置不再有效时归为本地模式
+if(cloud&&!cloud.server){cloud=null;lsDel(CKEY)}
+setSync(cloudOn()?"idle":"local");
+if(cloudOn()){setTimeout(()=>cloudPull(false).catch(()=>{}),600)}
+
+// 初始重渲染以应用扩展
+render();
+</script>
+</body>
+</html>
