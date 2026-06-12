@@ -545,6 +545,10 @@ h1{font-size:34px;font-weight:900;letter-spacing:1px}
 .loginhint{font-size:11px;color:var(--faint);line-height:1.7;text-align:center;padding-top:4px}
 .syncchipwrap{text-align:center;padding:8px 0 2px}
 .syncchip{font-family:var(--mono);font-size:11px}
+
+.logintabs{display:flex;background:var(--surface2);border-radius:99px;padding:4px;margin:14px 0 4px;border:1px solid var(--line)}
+.logintabs button{flex:1;border:none;background:transparent;color:var(--dim);font-size:13px;font-weight:700;padding:8px 0;border-radius:99px;cursor:pointer;font-family:var(--sans)}
+.logintabs button.on{background:var(--surface3);color:var(--green)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -3397,6 +3401,153 @@ renderSyncCard=function(){
 if(cloud&&!cloud.server){cloud=null;lsDel(CKEY)}
 setSync(cloudOn()?"idle":"local");
 if(cloudOn()){setTimeout(()=>cloudPull(false).catch(()=>{}),600)}
+
+// ================= 扩展模块 10:自助注册与改密码 =================
+let loginMode="login";
+
+showLogin=function(forced){
+  if(document.getElementById("loginmask"))return;
+  const server=cloud?.server||DEFAULT_SERVER;
+  const div=document.createElement("div");
+  div.id="loginmask";div.className="loginmask";
+  const draw=()=>{
+    const reg=loginMode==="register";
+    div.innerHTML=`<div class="logincard">
+      <div class="loginlogo">⚡</div>
+      <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+      <div class="logintabs">
+        <button class="${reg?"":"on"}" data-lm="login">登录</button>
+        <button class="${reg?"on":""}" data-lm="register">注册新账号</button>
+      </div>
+      <div class="loginform">
+        ${DEFAULT_SERVER?"":`<input id="lg-server" placeholder="服务器地址(管理员提供)" value="${esc(server)}">`}
+        <input id="lg-user" placeholder="用户名${reg?"(2-20位中英文/数字)":""}" value="${esc(cloud?.user||"")}" autocomplete="username">
+        <input id="lg-pass" type="password" placeholder="密码${reg?"(至少6位)":""}" autocomplete="${reg?"new-password":"current-password"}">
+        ${reg?'<input id="lg-invite" placeholder="邀请码(向管理员索取)">':""}
+        ${reg?"":`<label class="loginck"><input type="checkbox" id="lg-photos" ${cloud?.syncPhotos?"checked":""}> 同步白板照片(体积较大)</label>`}
+        <button class="logsave" id="lg-go">${reg?"注册并登录":"登 录"}</button>
+        <button class="loginskip" id="lg-skip">${forced?"稍后再说":"暂不登录,仅本地使用"}</button>
+        <div class="loginhint" id="lg-hint">${reg?"注册即自动加密存储,无需管理员操作":"没有账号?点上方「注册新账号」"}</div>
+      </div>
+    </div>`;
+    bind();
+  };
+  const bind=()=>{
+    div.querySelectorAll("[data-lm]").forEach(b=>b.onclick=()=>{loginMode=b.dataset.lm;draw()});
+    document.getElementById("lg-skip").onclick=()=>{lsSet(LMKEY,"1");div.remove()};
+    const hint=()=>document.getElementById("lg-hint");
+    const go=async()=>{
+      const sv=(DEFAULT_SERVER||document.getElementById("lg-server").value.trim()).replace(/\/$/,"");
+      const user=document.getElementById("lg-user").value.trim();
+      const pass=document.getElementById("lg-pass").value;
+      if(!sv||!user||!pass){hint().textContent="⚠ 请填写完整";hint().style.color="var(--amber)";return}
+      const btn=document.getElementById("lg-go");btn.disabled=true;
+      try{
+        if(loginMode==="register"){
+          const invite=document.getElementById("lg-invite").value.trim();
+          if(!invite)throw new Error("需要邀请码");
+          btn.textContent="注册中…";
+          const rr=await fetch(sv+"/register",{method:"POST",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({user,pass,invite})});
+          const rd=await rr.json().catch(()=>({}));
+          if(!rr.ok)throw new Error(rd.error||"HTTP "+rr.status);
+        }
+        btn.textContent="登录中…";
+        const r=await fetch(sv+"/login",{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({user,pass})});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(d.error||"HTTP "+r.status);
+        const ph=document.getElementById("lg-photos");
+        cloud={server:sv,user,token:d.token,exp:d.exp,
+          syncPhotos:ph?ph.checked:(cloud?.syncPhotos||false),auto:true};
+        lsSet(CKEY,JSON.stringify(cloud));lsDel(LMKEY);
+        div.remove();
+        const remote=await cloudPull(false).catch(()=>undefined);
+        if(remote===null)await cloudPush();
+        toast("✓ 欢迎,"+user+"!数据自动同步中");render();
+      }catch(e){
+        hint().textContent="⚠ "+e.message;hint().style.color="var(--amber)";
+        btn.textContent=loginMode==="register"?"注册并登录":"登 录";btn.disabled=false;
+      }
+    };
+    document.getElementById("lg-go").onclick=go;
+    div.querySelectorAll("input").forEach(i=>i.onkeydown=e=>{if(e.key==="Enter")go()});
+  };
+  document.body.appendChild(div);
+  draw();
+};
+
+// ---------- 修改密码弹窗 ----------
+function showChangePass(){
+  if(document.getElementById("loginmask"))return;
+  const div=document.createElement("div");
+  div.id="loginmask";div.className="loginmask";
+  div.innerHTML=`<div class="logincard">
+    <div class="loginlogo">🔑</div>
+    <h2>修改密码 <span>${esc(cloud?.user||"")}</span></h2>
+    <div class="loginform" style="margin-top:14px">
+      <input id="cp-old" type="password" placeholder="原密码" autocomplete="current-password">
+      <input id="cp-new" type="password" placeholder="新密码(至少6位)" autocomplete="new-password">
+      <input id="cp-new2" type="password" placeholder="再输一次新密码" autocomplete="new-password">
+      <button class="logsave" id="cp-go">确认修改</button>
+      <button class="loginskip" id="cp-cancel">取消</button>
+      <div class="loginhint" id="cp-hint"></div>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+  document.getElementById("cp-cancel").onclick=()=>div.remove();
+  document.getElementById("cp-go").onclick=async()=>{
+    const o=document.getElementById("cp-old").value,
+          n=document.getElementById("cp-new").value,
+          n2=document.getElementById("cp-new2").value;
+    const hint=document.getElementById("cp-hint");
+    if(!o||!n){hint.textContent="⚠ 请填写完整";hint.style.color="var(--amber)";return}
+    if(n!==n2){hint.textContent="⚠ 两次新密码不一致";hint.style.color="var(--amber)";return}
+    const btn=document.getElementById("cp-go");btn.textContent="修改中…";btn.disabled=true;
+    try{
+      const r=await fetch(cloud.server.replace(/\/$/,"")+"/changepass",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({user:cloud.user,oldpass:o,newpass:n})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error||"HTTP "+r.status);
+      div.remove();toast("✓ 密码已修改");
+    }catch(e){
+      hint.textContent="⚠ "+e.message;hint.style.color="var(--amber)";
+      btn.textContent="确认修改";btn.disabled=false;
+    }
+  };
+}
+
+// ---------- 云管理卡 v3:加入修改密码 ----------
+renderSyncCard=function(){
+  const el=document.getElementById("mysync");if(!el)return;
+  el.innerHTML=cloudOn()?`
+    <div class="pathdesc">已登录 <b style="color:var(--text)">${esc(cloud.user)}</b> · 修改后 4 秒自动同步 · 照片同步:${cloud.syncPhotos?"开":"关"} · 会话有效至 ${new Date(cloud.exp).toLocaleDateString("zh-CN")}</div>
+    <div class="databtns" style="margin-top:10px">
+      <button id="cs-now">立即同步</button>
+      <button id="cs-pass">修改密码</button>
+    </div>
+    <div class="databtns">
+      <button id="cs-pull">拉取云端覆盖本地</button>
+      <button id="cs-push">推送本地覆盖云端</button>
+    </div>
+    <div class="databtns">
+      <button id="cs-out" style="color:var(--rose)">退出登录</button>
+    </div>`
+  :`<div class="pathdesc">本地模式:数据仅存于此浏览器。登录后可多设备同步、永不丢失。</div>
+    <div class="databtns" style="margin-top:10px"><button id="cs-login" style="color:var(--green);border-color:var(--green-deep)">登录 / 注册</button></div>`;
+  const q=id=>document.getElementById(id);
+  if(q("cs-login"))q("cs-login").onclick=()=>showLogin(true);
+  if(q("cs-pass"))q("cs-pass").onclick=showChangePass;
+  if(q("cs-now"))q("cs-now").onclick=async()=>{try{await cloudPull(false);await cloudPush()}catch(e){}};
+  if(q("cs-pull"))q("cs-pull").onclick=async()=>{if(confirm("用云端数据覆盖本地?本地未同步的修改将丢失。"))try{await cloudPull(true)}catch(e){}};
+  if(q("cs-push"))q("cs-push").onclick=()=>cloudPush();
+  if(q("cs-out"))q("cs-out").onclick=()=>{
+    if(!confirm("退出登录?本地数据保留,仅断开云同步。"))return;
+    cloud=null;lsDel(CKEY);lsSet(LMKEY,"1");
+    setSync("local");renderMe();toast("已退出,转为本地模式");
+  };
+};
 
 // 初始重渲染以应用扩展
 render();
