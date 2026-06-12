@@ -253,6 +253,28 @@ h1{font-size:34px;font-weight:900;letter-spacing:1px}
 }
 .sectionlabel{font-size:14px;font-weight:800;margin:22px 4px 12px;color:var(--text)}
 
+/* ====== 训练热力图 ====== */
+.hmhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hmstats{display:flex;gap:18px}
+.hmstats div{text-align:right}
+.hmstats b{display:block;font-family:var(--mono);font-size:17px;color:var(--green);font-weight:700;line-height:1.2}
+.hmstats span{font-size:11px;color:var(--faint)}
+.hmscroll{overflow-x:auto;margin-top:14px;padding-bottom:4px;scrollbar-width:thin}
+.hmscroll::-webkit-scrollbar{height:6px}
+.hmscroll::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+.hmscroll svg{display:block}
+.hmscroll text{font-family:var(--mono);font-size:9.5px;fill:var(--faint)}
+.hm0{fill:var(--surface3)}
+.hm1{fill:var(--green);opacity:.28}
+.hm2{fill:var(--green);opacity:.5}
+.hm3{fill:var(--green);opacity:.75}
+.hm4{fill:var(--green);opacity:1}
+.hmcell{rx:2.5px;transition:opacity .15s}
+.hmcell:hover{stroke:var(--text);stroke-width:1px}
+.hmfoot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--faint)}
+.hmlegend{display:flex;align-items:center;gap:4px}
+.hmlegend i{width:10px;height:10px;border-radius:2.5px;display:inline-block}
+
 /* ====== 底部导航 ====== */
 .tabbar{
   position:fixed;bottom:0;left:0;right:0;z-index:40;
@@ -549,6 +571,72 @@ h1{font-size:34px;font-weight:900;letter-spacing:1px}
 .logintabs{display:flex;background:var(--surface2);border-radius:99px;padding:4px;margin:14px 0 4px;border:1px solid var(--line)}
 .logintabs button{flex:1;border:none;background:transparent;color:var(--dim);font-size:13px;font-weight:700;padding:8px 0;border-radius:99px;cursor:pointer;font-family:var(--sans)}
 .logintabs button.on{background:var(--surface3);color:var(--green)}
+
+/* ====== 扩展12:WOD分栏 / 浅色主题 / 主题按钮 ====== */
+.wodcols{display:flex;flex-direction:column;gap:12px}
+@media (min-width:900px){
+  body[data-tab="log"] #viewroot .wodcard{grid-column:1/-1}
+  body[data-tab="log"] #viewroot .hmcard{grid-column:1/-1}
+  body[data-tab="log"] #viewroot .wodformcard{grid-column:1/-1}
+  .wodformcard .logform{
+    display:grid;grid-template-columns:minmax(300px,440px) minmax(0,1fr);
+    gap:12px 20px;align-items:start;
+    grid-template-areas:"name content" "types content" "score content" "photo content" "prev prev" "save save";
+  }
+  .wodformcard #wodname{grid-area:name}
+  .wodformcard #wodtypes{grid-area:types;margin:0}
+  .wodformcard #wodcontent{grid-area:content;height:100%!important;min-height:200px;resize:vertical}
+  .wodformcard #wodscore{grid-area:score}
+  .wodformcard .photobar{grid-area:photo;margin:0}
+  .wodformcard #photopreview{grid-area:prev}
+  .wodformcard .logsave{grid-area:save;margin-top:4px}
+  .wodcols{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:20px;align-items:start}
+  .wodcols .wodpre{margin:10px 0 0}
+  .wodright{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+  .wodright .glossbox,.wodright .zhbox{margin:0}
+}
+.sidenav-theme{
+  display:flex;align-items:center;gap:10px;background:none;border:1px dashed var(--line);
+  color:var(--dim);font-size:13px;font-weight:600;font-family:var(--sans);
+  padding:10px 14px;border-radius:10px;cursor:pointer;margin-top:4px;
+}
+.sidenav-theme:hover{color:var(--text);border-color:var(--faint)}
+.databtns .themebtn{font-family:var(--sans)}
+
+/* ---- 浅色主题 ---- */
+body.light{
+  --bg:#F2F4F7; --surface:#FFFFFF; --surface2:#F2F4F7; --surface3:#E8EBF0; --line:#E2E6EC;
+  --text:#1A2330; --dim:#5A6573; --faint:#98A1AD;
+  --green:#0CA465; --green-deep:#BFE6D3; --blue:#2E6FD8; --amber:#BD7A12; --rose:#D4485C; --violet:#7A55D9;
+  background-image:radial-gradient(ellipse 80% 40% at 50% -10%, rgba(12,164,101,.07), transparent);
+}
+body.light .tabbar{background:rgba(255,255,255,.94);border-top:1px solid var(--line)}
+body.light .sidenav{background:linear-gradient(180deg,#FFFFFF,#F2F4F7);border-right:1px solid var(--line)}
+body.light .viewtabs button.on{box-shadow:0 1px 4px rgba(20,30,50,.1)}
+body.light .chip.on{color:#fff}
+body.light .statusbtn.mastered{color:#fff}
+body.light .nodedot.mastered{color:#fff;box-shadow:0 0 12px rgba(12,164,101,.3)}
+body.light .logsave,body.light .wodbtn:not(.ghostbtn){color:#fff}
+body.light .toast{color:#fff;box-shadow:0 8px 28px rgba(12,164,101,.4)}
+body.light .statusrow button.on-mastered{color:#fff}
+body.light .tutsec p,body.light .steps li,body.light .cues li,body.light .stdbox,
+body.light .logitem .t,body.light .daycard .ent,body.light .wodpre{color:#3A4654}
+body.light .ip{stroke:#C4CCD6}
+body.light .ipb{stroke:#9AA5B2}
+body.light .ipr{stroke:#9AA5B2}
+body.light .ipf{fill:#D9DFE6}
+body.light .ifk{fill:#C4CCD6;stroke:#9AA5B2}
+body.light .ifd{fill:#C4CCD6;stroke:#9AA5B2}
+body.light .ifp{fill:rgba(12,164,101,.08);stroke:#9AA5B2}
+body.light .ifp2{fill:#9AA5B2}
+body.light .ifb{fill:rgba(46,111,216,.12);stroke:#2E6FD8}
+body.light .illus{background:linear-gradient(180deg,#F7F9FB,#FFFFFF)}
+body.light .sheet{box-shadow:0 24px 70px rgba(25,35,55,.25)}
+body.light .logincard{box-shadow:0 24px 70px rgba(25,35,55,.25)}
+body.light .masthead .en,body.light .ben{color:var(--faint)}
+body.light .badge.unlocked{background:linear-gradient(180deg,rgba(12,164,101,.08),#fff)}
+body.light ::-webkit-scrollbar-thumb{background:#CBD2DB;border-color:var(--bg)}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1491,6 +1579,83 @@ async function aiChat(messages,model){
 
 // ---- 官方 WOD 抓取 ----
 function todayKey(){const n=new Date();return `${n.getFullYear()}-${n.getMonth()+1}-${n.getDate()}`}
+
+// ---- 训练热力图(类 GitHub contributions) ----
+function buildHeatmap(){
+  const counts={}; // 'YYYY-M-D' -> count
+  const keyOf=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  const add=ts=>{const d=new Date(ts);counts[keyOf(d)]=(counts[keyOf(d)]||0)+1;};
+  (state.wods||[]).forEach(w=>{
+    if(w.ts)add(w.ts);
+    else if(w.d){const dd=new Date(w.d);if(!isNaN(dd))add(dd.getTime());}
+  });
+  Object.values(state.logs||{}).forEach(arr=>arr.forEach(l=>{if(l.ts)add(l.ts)}));
+
+  const today=new Date();today.setHours(12,0,0,0);
+  const end=new Date(today);end.setDate(end.getDate()+(6-end.getDay())); // 本周周六
+  const WEEKS=53;
+  const start=new Date(end);start.setDate(start.getDate()-(WEEKS*7-1));
+
+  // 统计:年度总数 / 当前连续天数 / 本月
+  let total=0,month=0;
+  const nowM=today.getMonth(),nowY=today.getFullYear();
+  Object.entries(counts).forEach(([k,c])=>{
+    const d=new Date(k.replace(/-/g,"/"));
+    if(d>=start&&d<=today){total+=c;if(d.getMonth()===nowM&&d.getFullYear()===nowY)month+=c;}
+  });
+  let streak=0;{
+    const cur=new Date(today);
+    if(!counts[keyOf(cur)])cur.setDate(cur.getDate()-1); // 今天没练,从昨天起算
+    while(counts[keyOf(cur)]){streak++;cur.setDate(cur.getDate()-1);}
+  }
+
+  const CELL=11,GAP=3,LP=26,TP=14,STEP=CELL+GAP;
+  const W=LP+WEEKS*STEP-GAP, H=TP+7*STEP-GAP;
+  const MONTHS=["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+  let cellsSvg="",monthsSvg="",lastMonth=-1;
+  for(let col=0;col<WEEKS;col++){
+    for(let row=0;row<7;row++){
+      const d=new Date(start);d.setDate(start.getDate()+col*7+row);
+      if(d>today)continue;
+      if(row===0||(col===0&&row===0)){
+        const m=d.getMonth();
+        if(m!==lastMonth){
+          // 月初太靠右边缘时不画标签,避免溢出
+          if(col<WEEKS-2)monthsSvg+=`<text x="${LP+col*STEP}" y="9">${MONTHS[m]}</text>`;
+          lastMonth=m;
+        }
+      }
+      const c=counts[keyOf(d)]||0;
+      const lvl=c>=5?4:c>=3?3:c>=2?2:c>=1?1:0;
+      const tip=`${d.getMonth()+1}月${d.getDate()}日 · ${c?c+" 次训练":"无记录"}`;
+      cellsSvg+=`<rect class="hmcell hm${lvl}" x="${LP+col*STEP}" y="${TP+row*STEP}" width="${CELL}" height="${CELL}"><title>${tip}</title></rect>`;
+    }
+  }
+  const wdSvg=[["一",1],["三",3],["五",5]].map(([t,r])=>`<text x="0" y="${TP+r*STEP+9}">${t}</text>`).join("");
+
+  setTimeout(()=>{const el=document.getElementById("hmscroll");if(el)el.scrollLeft=el.scrollWidth;},0);
+
+  return `<div class="pathcard hmcard">
+    <div class="hmhead">
+      <div>
+        <div class="pathtitle" style="margin-bottom:2px"><span class="zh">训练热力图</span></div>
+        <div class="pathdesc" style="margin:0">过去一年的 WOD 与动作打卡</div>
+      </div>
+      <div class="hmstats">
+        <div><b>${total}</b><span>年度训练</span></div>
+        <div><b>${streak}</b><span>连续天数</span></div>
+        <div><b>${month}</b><span>本月</span></div>
+      </div>
+    </div>
+    <div class="hmscroll" id="hmscroll">
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${monthsSvg}${wdSvg}${cellsSvg}</svg>
+    </div>
+    <div class="hmfoot">
+      <span>${total?"":"开始记录后,这里会慢慢绿起来 🌱"}</span>
+      <div class="hmlegend"><span>少</span><i class="hm0" style="background:var(--surface3)"></i><i style="background:var(--green);opacity:.28"></i><i style="background:var(--green);opacity:.5"></i><i style="background:var(--green);opacity:.75"></i><i style="background:var(--green)"></i><span>多</span></div>
+    </div>
+  </div>`;
+}
 async function fetchOfficial(){
   const btn=$("#fetchwod");btn.textContent="获取中…";btn.disabled=true;
   try{
@@ -1578,7 +1743,9 @@ renderLog=function(){
       <button class="wodbtn" id="fetchwod">获取今日 WOD</button>`}
   </div>
 
-  <div class="pathcard">
+  ${buildHeatmap()}
+
+  <div class="pathcard wodformcard">
     <div class="pathtitle"><span class="zh">记录今天的 WOD</span></div>
     <div class="logform" style="margin-top:12px">
       <input class="wodinput" id="wodname" placeholder="名称,如 Fran / 馆内自编">
@@ -3620,6 +3787,271 @@ fetchOfficial=async function(){
   const c=state.wodCache&&state.wodCache[todayKey()];
   if(c&&isBlockedPage(c.en)){delete state.wodCache[todayKey()];try{lsSet(KEY,JSON.stringify(state))}catch(e){}}
 })();
+
+// ================= 扩展模块 12:五项体验优化 =================
+
+// ---------- 3. 深浅色主题 ----------
+const TKEY="cf-skilltree-theme";
+function applyTheme(t){
+  document.body.classList.toggle("light",t==="light");
+  lsSet(TKEY,t);
+  document.querySelectorAll(".themebtn").forEach(b=>b.textContent=t==="light"?"🌙 深色模式":"☀️ 浅色模式");
+}
+applyTheme(lsGet(TKEY)||"dark");
+(function(){
+  const nav=document.querySelector(".sidenav-nav");
+  if(nav)nav.insertAdjacentHTML("afterend",'<button class="themebtn sidenav-theme"></button>');
+  document.addEventListener("click",e=>{
+    if(e.target.classList&&e.target.classList.contains("themebtn"))
+      applyTheme(document.body.classList.contains("light")?"dark":"light");
+  });
+  applyTheme(lsGet(TKEY)||"dark");
+})();
+
+// ---------- 2. 拉取成功后自动生成中文讲解 ----------
+explainOfficial=async function(){
+  const c=state.wodCache[todayKey()];if(!c||!c.en)return;
+  if(!aiReady()){toast("请先在「我的」页配置 AI 接口");return}
+  const btn=$("#explainwod");
+  if(btn){btn.textContent="生成中…";btn.disabled=true}else toast("正在生成中文讲解…");
+  try{
+    const zh=await aiChat([
+      {role:"system",content:"你是资深CrossFit教练。把官方WOD翻译并讲解成中文:1)训练内容(保留英文动作名+中文注释) 2)训练刺激与配速策略 3)常见缩放建议。简洁分段,不要废话。"},
+      {role:"user",content:c.en}
+    ],state.ai.tmodel);
+    c.zh=zh;save();renderLog();toast("✓ 中文讲解已生成");
+  }catch(e){
+    toast("AI 讲解失败:"+e.message);
+    const b=$("#explainwod");if(b){b.textContent="重试";b.disabled=false}
+  }
+};
+const _fo12=fetchOfficial;
+fetchOfficial=async function(){
+  await _fo12();
+  const c=state.wodCache[todayKey()];
+  if(c&&c.en&&!c.zh&&aiReady())explainOfficial();
+};
+
+// ---------- 4. 登录页 v4:去照片选项 + 记住密码 ----------
+const RKEY="cf-skilltree-rmb";
+showLogin=function(forced){
+  if(document.getElementById("loginmask"))return;
+  let saved=null;try{saved=JSON.parse(lsGet(RKEY)||"null")}catch(e){}
+  const div=document.createElement("div");
+  div.id="loginmask";div.className="loginmask";
+  const draw=()=>{
+    const reg=loginMode==="register";
+    div.innerHTML=`<div class="logincard">
+      <div class="loginlogo">⚡</div>
+      <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+      <div class="logintabs">
+        <button class="${reg?"":"on"}" data-lm="login">登录</button>
+        <button class="${reg?"on":""}" data-lm="register">注册新账号</button>
+      </div>
+      <div class="loginform">
+        ${DEFAULT_SERVER?"":`<input id="lg-server" placeholder="服务器地址(管理员提供)" value="${esc(cloud?.server||"")}">`}
+        <input id="lg-user" placeholder="用户名${reg?"(2-20位中英文/数字)":""}" value="${esc(saved?.u||cloud?.user||"")}" autocomplete="username">
+        <input id="lg-pass" type="password" placeholder="密码${reg?"(至少6位)":""}" value="${!reg&&saved?esc(b64dSafe(saved.p)):""}" autocomplete="${reg?"new-password":"current-password"}">
+        ${reg?'<input id="lg-invite" placeholder="邀请码(向管理员索取)">':`<label class="loginck"><input type="checkbox" id="lg-rmb" ${saved?"checked":""}> 记住密码(仅保存在本设备)</label>`}
+        <button class="logsave" id="lg-go">${reg?"注册并登录":"登 录"}</button>
+        <button class="loginskip" id="lg-skip">${forced?"稍后再说":"暂不登录,仅本地使用"}</button>
+        <div class="loginhint" id="lg-hint">${reg?"注册即自动加密存储,无需管理员操作":"没有账号?点上方「注册新账号」"}</div>
+      </div>
+    </div>`;
+    bind();
+  };
+  function b64dSafe(s){try{return decodeURIComponent(escape(atob(s)))}catch(e){return""}}
+  const bind=()=>{
+    div.querySelectorAll("[data-lm]").forEach(b=>b.onclick=()=>{loginMode=b.dataset.lm;draw()});
+    document.getElementById("lg-skip").onclick=()=>{lsSet(LMKEY,"1");div.remove()};
+    const hint=()=>document.getElementById("lg-hint");
+    const go=async()=>{
+      const sv=(DEFAULT_SERVER||document.getElementById("lg-server").value.trim()).replace(/\/$/,"");
+      const user=document.getElementById("lg-user").value.trim();
+      const pass=document.getElementById("lg-pass").value;
+      if(!sv||!user||!pass){hint().textContent="⚠ 请填写完整";hint().style.color="var(--amber)";return}
+      const btn=document.getElementById("lg-go");btn.disabled=true;
+      try{
+        if(loginMode==="register"){
+          const invite=document.getElementById("lg-invite").value.trim();
+          if(!invite)throw new Error("需要邀请码");
+          btn.textContent="注册中…";
+          const rr=await fetch(sv+"/register",{method:"POST",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({user,pass,invite})});
+          const rd=await rr.json().catch(()=>({}));
+          if(!rr.ok)throw new Error(rd.error||"HTTP "+rr.status);
+        }
+        btn.textContent="登录中…";
+        const r=await fetch(sv+"/login",{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({user,pass})});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(d.error||"HTTP "+r.status);
+        const rmb=document.getElementById("lg-rmb");
+        if(rmb&&rmb.checked)lsSet(RKEY,JSON.stringify({u:user,p:btoa(unescape(encodeURIComponent(pass)))}));
+        else lsDel(RKEY);
+        cloud={server:sv,user,token:d.token,exp:d.exp,
+          syncPhotos:cloud?.syncPhotos||false,auto:true};
+        lsSet(CKEY,JSON.stringify(cloud));lsDel(LMKEY);
+        div.remove();
+        const remote=await cloudPull(false).catch(()=>undefined);
+        if(remote===null)await cloudPush();
+        toast("✓ 欢迎,"+user+"!数据自动同步中");render();
+      }catch(e){
+        hint().textContent="⚠ "+e.message;hint().style.color="var(--amber)";
+        btn.textContent=loginMode==="register"?"注册并登录":"登 录";btn.disabled=false;
+      }
+    };
+    document.getElementById("lg-go").onclick=go;
+    div.querySelectorAll("input").forEach(i=>i.onkeydown=e=>{if(e.key==="Enter")go()});
+  };
+  document.body.appendChild(div);
+  draw();
+};
+
+// 云管理卡 v4:加照片同步开关与主题入口
+renderSyncCard=function(){
+  const el=document.getElementById("mysync");if(!el)return;
+  el.innerHTML=cloudOn()?`
+    <div class="pathdesc">已登录 <b style="color:var(--text)">${esc(cloud.user)}</b> · 修改后 4 秒自动同步 · 会话有效至 ${new Date(cloud.exp).toLocaleDateString("zh-CN")}</div>
+    <div class="databtns" style="margin-top:10px">
+      <button id="cs-now">立即同步</button>
+      <button id="cs-photos">照片同步:${cloud.syncPhotos?"开":"关"}</button>
+    </div>
+    <div class="databtns">
+      <button id="cs-pass">修改密码</button>
+      <button id="cs-pull">拉取云端覆盖本地</button>
+    </div>
+    <div class="databtns">
+      <button id="cs-push">推送本地覆盖云端</button>
+      <button id="cs-out" style="color:var(--rose)">退出登录</button>
+    </div>`
+  :`<div class="pathdesc">本地模式:数据仅存于此浏览器。登录后可多设备同步、永不丢失。</div>
+    <div class="databtns" style="margin-top:10px"><button id="cs-login" style="color:var(--green);border-color:var(--green-deep)">登录 / 注册</button></div>`;
+  const q=id=>document.getElementById(id);
+  if(q("cs-login"))q("cs-login").onclick=()=>showLogin(true);
+  if(q("cs-photos"))q("cs-photos").onclick=()=>{
+    cloud.syncPhotos=!cloud.syncPhotos;lsSet(CKEY,JSON.stringify(cloud));
+    renderSyncCard();toast(cloud.syncPhotos?"✓ 照片将随数据上云(注意体积)":"已关闭照片同步");schedulePush();
+  };
+  if(q("cs-pass"))q("cs-pass").onclick=showChangePass;
+  if(q("cs-now"))q("cs-now").onclick=async()=>{try{await cloudPull(false);await cloudPush()}catch(e){}};
+  if(q("cs-pull"))q("cs-pull").onclick=async()=>{if(confirm("用云端数据覆盖本地?本地未同步的修改将丢失。"))try{await cloudPull(true)}catch(e){}};
+  if(q("cs-push"))q("cs-push").onclick=()=>cloudPush();
+  if(q("cs-out"))q("cs-out").onclick=()=>{
+    if(!confirm("退出登录?本地数据保留,仅断开云同步。"))return;
+    cloud=null;lsDel(CKEY);lsSet(LMKEY,"1");
+    setSync("local");renderMe();toast("已退出,转为本地模式");
+  };
+};
+// 我的页追加主题切换按钮
+const _rmTheme=renderMe;
+renderMe=function(){
+  _rmTheme();
+  const db=root.querySelector(".databtns");
+  if(db)db.insertAdjacentHTML("afterbegin",'<button class="themebtn"></button>');
+  applyTheme(lsGet(TKEY)||"dark");
+};
+
+// ---------- 1+5. 记录页 v3:WOD卡内分栏 + 照片选择即自动识别 ----------
+renderLog=function(){
+  const tk=todayKey(),cache=state.wodCache[tk];
+  const ann=cache&&cache.en?annotate(cache.en):[];
+  let html=`
+  <div class="pathcard wodcard">
+    <div class="pathtitle"><span class="zh">今日官方 WOD</span><span class="pct" style="font-size:11px">crossfit.com</span></div>
+    ${cache&&cache.en?`
+      <div class="wodcols">
+        <div class="wodleft"><pre class="wodpre">${esc(cache.en)}</pre></div>
+        <div class="wodright">
+          ${ann.length?`<div class="glossbox"><div class="glosstitle">术语对照</div>${ann.map(([t,z])=>`<div class="glossrow"><b>${esc(t)}</b><span>${esc(z)}</span></div>`).join("")}</div>`:""}
+          ${cache.zh?`<div class="zhbox"><div class="glosstitle" style="color:var(--green)">中文讲解</div><pre class="wodpre" style="border:none;padding:0;background:none;margin:0">${esc(cache.zh)}</pre></div>`
+            :`<button class="wodbtn" id="explainwod">✨ AI 生成中文讲解</button>`}
+        </div>
+      </div>
+      <button class="wodbtn ghostbtn" id="fetchwod">刷新</button>`
+    :`<div class="pathdesc">从 crossfit.com/workout 获取官方每日训练,自动附术语对照${aiReady()?"并生成中文讲解":""}。</div>
+      <button class="wodbtn" id="fetchwod">获取今日 WOD</button>`}
+  </div>
+
+  ${buildHeatmap()}
+
+  <div class="pathcard wodformcard">
+    <div class="pathtitle"><span class="zh">记录今天的 WOD</span></div>
+    <div class="logform" style="margin-top:12px">
+      <input class="wodinput" id="wodname" placeholder="名称,如 Fran / 馆内自编">
+      <div class="feelrow" id="wodtypes">${WODTYPES.map(t=>`<button data-wt="${t}" class="${t===wodType?"on":""}">${t}</button>`).join("")}</div>
+      <textarea id="wodcontent" style="height:96px" placeholder="训练内容${aiReady()?"——选择白板照片将自动识别填入":",如:21-15-9 Thruster 42.5kg / Pull-up…"}"></textarea>
+      <input class="wodinput" id="wodscore" placeholder="成绩,如 7:32 / 12轮+5次 / 85kg">
+      <div class="photobar">
+        <label class="wodbtn ghostbtn" style="flex:1;text-align:center">📷 ${aiReady()?"拍白板·自动识别":"白板照片"}<input type="file" id="wodphoto" accept="image/*" capture="environment" style="display:none"></label>
+        <button class="wodbtn ghostbtn" id="ocrbtn" style="flex:1">重新识别</button>
+      </div>
+      <div id="photopreview"></div>
+      <button class="logsave" id="wodsave">保存 WOD 记录</button>
+    </div>
+  </div>`;
+
+  if(state.wods.length){
+    html+=`<div class="sectionlabel">WOD 历史</div>`;
+    html+=state.wods.slice().reverse().map((w,ri)=>{
+      const i=state.wods.length-1-ri;
+      return `<div class="daycard">
+        <div class="d">${w.d} · ${esc(w.type)}${w.name?` · ${esc(w.name)}`:""}
+          <button class="logdel" data-wdel="${i}" style="float:right">✕</button></div>
+        ${w.content?`<pre class="wodpre" style="margin:4px 0">${esc(w.content)}</pre>`:""}
+        ${w.score?`<div class="ent"><b>成绩</b><span style="color:var(--green);font-family:var(--mono)">${esc(w.score)}</span></div>`:""}
+        ${w.photo?`<img class="wodimg" src="${w.photo}" data-zoom>`:""}
+      </div>`;
+    }).join("");
+  }
+  const entries=[];
+  Object.entries(state.logs).forEach(([id,arr])=>arr.forEach(l=>entries.push(Object.assign({},l,{id}))));
+  entries.sort((a,b)=>b.ts-a.ts);
+  if(entries.length){
+    html+=`<div class="sectionlabel">动作打卡</div>`;
+    const byDay={};
+    entries.forEach(e=>{
+      const day=new Date(e.ts).toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});
+      (byDay[day]=byDay[day]||[]).push(e);
+    });
+    html+=Object.entries(byDay).map(([day,list])=>`
+      <div class="daycard"><div class="d">${day} · ${list.length} 条</div>
+      ${list.map(e=>`<div class="ent"><b>${esc(byId[e.id].zh)}</b><span>${esc(e.t)||"完成练习"} ${e.f||""}</span></div>`).join("")}
+      </div>`).join("");
+  }
+  if(!state.wods.length&&!entries.length&&!(cache&&cache.en)){
+    html+=`<div class="empty"><div class="big">📒</div>训练记录会出现在这里</div>`;
+  }
+  root.innerHTML=html;
+
+  $("#fetchwod")&&($("#fetchwod").onclick=fetchOfficial);
+  $("#explainwod")&&($("#explainwod").onclick=explainOfficial);
+  document.querySelectorAll("[data-wt]").forEach(b=>b.onclick=()=>{wodType=b.dataset.wt;
+    document.querySelectorAll("[data-wt]").forEach(x=>x.classList.toggle("on",x.dataset.wt===wodType))});
+  $("#wodphoto").onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    compressImage(f,url=>{
+      wodPhoto=url;
+      $("#photopreview").innerHTML=`<img class="wodimg" src="${url}">`;
+      if(aiReady())ocrBoard();   // 5. 选完即自动识别
+      else toast("照片已附加;配置 AI 接口后可自动识别白板");
+    });
+  };
+  $("#ocrbtn").onclick=ocrBoard;
+  $("#wodsave").onclick=()=>{
+    const name=$("#wodname").value.trim(),content=$("#wodcontent").value.trim(),score=$("#wodscore").value.trim();
+    if(!content&&!name&&!wodPhoto){toast("至少填写名称、内容或附一张照片");return}
+    const n=new Date();
+    state.wods.push({d:`${n.getMonth()+1}/${n.getDate()}`,ts:Date.now(),name,type:wodType,content,score,photo:wodPhoto});
+    wodPhoto=null;
+    try{save()}catch(e){}
+    toast("✓ WOD 已记录");renderLog();
+  };
+  document.querySelectorAll("[data-wdel]").forEach(b=>b.onclick=()=>{
+    state.wods.splice(+b.dataset.wdel,1);save();renderLog();
+  });
+  document.querySelectorAll("[data-zoom]").forEach(img=>img.onclick=()=>img.classList.toggle("zoomed"));
+};
 
 // 初始重渲染以应用扩展
 render();
