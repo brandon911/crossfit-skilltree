@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CrossFit Gymnastics</title>
+<title>CrossFit训练记录</title>
 <style>
 :root{
   --bg:#0C0F14;
@@ -274,6 +274,9 @@ h1{font-size:34px;font-weight:900;letter-spacing:1px}
 .hmfoot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--faint)}
 .hmlegend{display:flex;align-items:center;gap:4px}
 .hmlegend i{width:10px;height:10px;border-radius:2.5px;display:inline-block}
+.cfgrow{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:5px 0;font-size:14px}
+.cfgrow b{color:var(--dim);font-weight:600;flex-shrink:0}
+.cfgrow span{font-family:var(--mono);font-size:13px}
 
 /* ====== 底部导航 ====== */
 .tabbar{
@@ -643,16 +646,17 @@ body.light ::-webkit-scrollbar-thumb{background:#CBD2DB;border-color:var(--bg)}
 <body>
 <div class="app">
   <div class="masthead">
-    <h1 id="pagetitle">CrossFit训练记录</h1>
+    <h1 id="pagetitle">训练记录</h1>
     <span class="en">Skill Tree</span>
   </div>
   <div id="viewroot"></div>
 </div>
 
 <div class="tabbar"><div class="inner">
-  <button data-tab="tree" class="on"><span class="ic">🌳</span>技能树</button>
-  <button data-tab="log"><span class="ic">📒</span>记录</button>
+  <button data-tab="log" class="on"><span class="ic">📒</span>记录</button>
+  <button data-tab="tree"><span class="ic">🌳</span>学习</button>
   <button data-tab="me"><span class="ic">🏅</span>我的</button>
+  <button data-tab="settings"><span class="ic">⚙️</span>设置</button>
 </div></div>
 
 <div class="sheetmask" id="sheetmask"></div>
@@ -971,7 +975,7 @@ function save(){
 }
 
 // ================= 全局UI状态 =================
-let tab="tree", treeView="moves", curMove=null, curFeel=null;
+let tab="log", treeView="moves", curMove=null, curFeel=null;
 let filterStatus="all", filterSub="all", filterLvl="all";
 const STATUS_META={
   none:{ic:"",label:"未开始"},
@@ -985,10 +989,11 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 
 // ================= 渲染入口 =================
 function render(){
-  $("#pagetitle").textContent = tab==="tree"?"技能树":tab==="log"?"训练记录":"我的成就";
+  $("#pagetitle").textContent = tab==="tree"?"技能学习":tab==="log"?"训练记录":tab==="settings"?"系统配置":"我的成就";
   document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
   if(tab==="tree") renderTree();
   else if(tab==="log") renderLog();
+  else if(tab==="settings"&&typeof renderSettings==="function") renderSettings();
   else renderMe();
 }
 
@@ -3170,12 +3175,13 @@ document.body.insertAdjacentHTML("afterbegin",`
 <aside class="sidenav">
   <div class="brand">
     <div class="blogo">⚡</div>
-    <div><div class="bzh">技能树</div><div class="ben">CrossFit Skill Tree</div></div>
+    <div><div class="bzh" style="font-size:16px;letter-spacing:0">CrossFit训练记录</div><div class="ben">Training Log</div></div>
   </div>
   <nav class="sidenav-nav">
-    <button data-stab="tree" class="on"><span>🌳</span>技能树</button>
-    <button data-stab="log"><span>📒</span>训练记录</button>
+    <button data-stab="log" class="on"><span>📒</span>训练记录</button>
+    <button data-stab="tree"><span>🌳</span>技能学习</button>
     <button data-stab="me"><span>🏅</span>我的成就</button>
+    <button data-stab="settings"><span>⚙️</span>系统配置</button>
   </nav>
   <div class="sideprog">
     <div class="sp-row"><span>总进度</span><span class="mono" id="sn-pct">0%</span></div>
@@ -3344,7 +3350,7 @@ function showLogin(forced){
   div.id="loginmask";div.className="loginmask";
   div.innerHTML=`<div class="logincard">
     <div class="loginlogo">⚡</div>
-    <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+    <h2>CrossFit训练记录 <span>Training Log</span></h2>
     <p class="logindesc">使用 GitHub 同步训练数据,任何设备登录即恢复全部进度。<br>数据保存在<b>你自己的私有仓库</b>中,Token 仅存于本机浏览器。</p>
     <div class="loginform">
       <input id="lg-owner" placeholder="GitHub 用户名" value="${esc(cloud?.owner||"")}" autocomplete="username">
@@ -3496,7 +3502,7 @@ showLogin=function(forced){
   div.id="loginmask";div.className="loginmask";
   div.innerHTML=`<div class="logincard">
     <div class="loginlogo">⚡</div>
-    <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+    <h2>CrossFit训练记录 <span>Training Log</span></h2>
     <p class="logindesc">登录后训练数据云端同步,任何设备恢复全部进度。</p>
     <div class="loginform">
       ${DEFAULT_SERVER?"":`<input id="lg-server" placeholder="服务器地址(Worker URL,管理员提供)" value="${esc(server)}" autocomplete="url">`}
@@ -3522,7 +3528,7 @@ showLogin=function(forced){
         body:JSON.stringify({user,pass})});
       const d=await r.json().catch(()=>({}));
       if(!r.ok)throw new Error(d.error||"HTTP "+r.status);
-      cloud={server:sv,user,token:d.token,exp:d.exp,
+      cloud={server:sv,user,token:d.token,exp:d.exp,created:d.created||(cloud&&cloud.created)||Date.now(),
         syncPhotos:document.getElementById("lg-photos").checked,auto:true};
       lsSet(CKEY,JSON.stringify(cloud));lsDel(LMKEY);
       div.remove();
@@ -3581,7 +3587,7 @@ showLogin=function(forced){
     const reg=loginMode==="register";
     div.innerHTML=`<div class="logincard">
       <div class="loginlogo">⚡</div>
-      <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+      <h2>CrossFit训练记录 <span>Training Log</span></h2>
       <div class="logintabs">
         <button class="${reg?"":"on"}" data-lm="login">登录</button>
         <button class="${reg?"on":""}" data-lm="register">注册新账号</button>
@@ -3625,7 +3631,7 @@ showLogin=function(forced){
         const d=await r.json().catch(()=>({}));
         if(!r.ok)throw new Error(d.error||"HTTP "+r.status);
         const ph=document.getElementById("lg-photos");
-        cloud={server:sv,user,token:d.token,exp:d.exp,
+        cloud={server:sv,user,token:d.token,exp:d.exp,created:d.created||(cloud&&cloud.created)||Date.now(),
           syncPhotos:ph?ph.checked:(cloud?.syncPhotos||false),auto:true};
         lsSet(CKEY,JSON.stringify(cloud));lsDel(LMKEY);
         div.remove();
@@ -3722,21 +3728,39 @@ function isBlockedPage(t){
   return /could not be satisfied|Generated by cloudfront|403 ERROR|Request blocked/i.test(t||"");
 }
 function extractWod(raw){
-  let body=raw;
-  const wi=raw.search(/workout of the day/i);
-  if(wi>-1)body=raw.slice(wi);
-  else{
-    const di=raw.search(/\b2\d{5}\b/); // 日期码如 260611
-    if(di>-1)body=raw.slice(Math.max(0,di-30));
+  raw=raw.replace(/!\[[^\]]*\]\([^)]*\)/g,"").replace(/\[([^\]]*)\]\([^)]*\)/g,"$1");
+  let lines=raw.split("\n").map(l=>l.trim());
+  // 1) 过滤导航/菜单/页脚噪声(整行精确匹配)
+  const NAV=/^(menu|search|sign ?in|log ?in|shop|games|open|learn|courses?|find a gym|about( us)?|careers|follow( us)?|©.*|cookie.*|privacy.*|terms.*|getting started|what is crossfit\??|the crossfit effect|crossfit is the cure|level 1 certificate course|explore all courses|explore workouts|private courses|military resources|coaching resources|workouts?|workout of the day|hero workouts|movements|media|store new|new store|month|year|markdown content:|url source:.*|title:.*)$/i;
+  const MONTH=/^\d{1,2}\s*[-–]\s*(january|february|march|april|may|june|july|august|september|october|november|december)$/i;
+  const YEAR=/^(19|20)\d{2}$/;
+  lines=lines.filter(l=>l&&!NAV.test(l)&&!MONTH.test(l)&&!YEAR.test(l));
+  // 2) 连续重复行去重(导航常出现两遍)
+  const dedup=[];for(const l of lines){if(l!==dedup[dedup.length-1])dedup.push(l)}
+  let text=dedup.join("\n");
+  // 3) 锚定真正的训练内容
+  const m=text.search(/(For time:|For load:|AMRAP|EMOM|every \d+ (min|sec)|\d+ rounds|rounds for time|on a \d+|tabata|rest day)/i);
+  if(m>-1){
+    // 向前回溯,带上日期码/赛事名等标题行(最多4行)
+    const before=text.slice(0,m).split("\n").filter(s=>s.trim());
+    const keep=[];
+    for(let i=before.length-1;i>=0&&keep.length<4;i--){
+      const s=before[i].trim();
+      if(/\b2\d{5}\b/.test(s)||/workout of the day/i.test(s)||s.length<60)keep.unshift(s);
+      else break;
+    }
+    text=(keep.length?keep.join("\n")+"\n":"")+text.slice(m);
+  }else{
+    // 兜底:从最后一个日期码行开始
+    const di=text.search(/\b2\d{5}\b/);
+    if(di>-1)text=text.slice(Math.max(0,text.lastIndexOf("\n",di)+1));
   }
-  const cut=body.search(/(Stimulus and Strategy|Scaling:|Scaling Options|Post .{0,50}comments|Compare to|Resources:)/i);
-  let main=(cut>40?body.slice(0,cut):body).trim();
-  main=main.split("\n").filter(l=>{
-    const s=l.trim();
-    return s&&!/^(menu|search|sign in|log in|shop|games|open|learn|courses|find a gym|about|careers|follow|©|cookie)/i.test(s);
-  }).join("\n");
-  if(main.length>1600)main=main.slice(0,1600)+"\n…";
-  return main;
+  // 4) 截断训练正文之后的讲解/评论区
+  const cut=text.search(/(Stimulus and Strategy|Scaling:|Scaling Options|Intermediate option|Beginner option|Post .{0,50}comments|Compare to|Resources:)/i);
+  if(cut>40)text=text.slice(0,cut);
+  text=text.trim();
+  if(text.length>1200)text=text.slice(0,1200)+"\n…";
+  return text;
 }
 
 fetchOfficial=async function(){
@@ -3786,6 +3810,10 @@ fetchOfficial=async function(){
 (function(){
   const c=state.wodCache&&state.wodCache[todayKey()];
   if(c&&isBlockedPage(c.en)){delete state.wodCache[todayKey()];try{lsSet(KEY,JSON.stringify(state))}catch(e){}}
+  else if(c&&c.en&&(c.en.length>900||/Getting Started|Level 1 Certificate|Explore All Courses/i.test(c.en))){
+    const cleaned=extractWod(c.en);
+    if(cleaned.length>=30){c.en=cleaned;try{lsSet(KEY,JSON.stringify(state))}catch(e){}}
+  }
 })();
 
 // ================= 扩展模块 12:五项体验优化 =================
@@ -3843,7 +3871,7 @@ showLogin=function(forced){
     const reg=loginMode==="register";
     div.innerHTML=`<div class="logincard">
       <div class="loginlogo">⚡</div>
-      <h2>技能树 <span>CrossFit Skill Tree</span></h2>
+      <h2>CrossFit训练记录 <span>Training Log</span></h2>
       <div class="logintabs">
         <button class="${reg?"":"on"}" data-lm="login">登录</button>
         <button class="${reg?"on":""}" data-lm="register">注册新账号</button>
@@ -3889,7 +3917,7 @@ showLogin=function(forced){
         const rmb=document.getElementById("lg-rmb");
         if(rmb&&rmb.checked)lsSet(RKEY,JSON.stringify({u:user,p:btoa(unescape(encodeURIComponent(pass)))}));
         else lsDel(RKEY);
-        cloud={server:sv,user,token:d.token,exp:d.exp,
+        cloud={server:sv,user,token:d.token,exp:d.exp,created:d.created||(cloud&&cloud.created)||Date.now(),
           syncPhotos:cloud?.syncPhotos||false,auto:true};
         lsSet(CKEY,JSON.stringify(cloud));lsDel(LMKEY);
         div.remove();
@@ -4054,6 +4082,108 @@ renderLog=function(){
 };
 
 // 初始重渲染以应用扩展
+render();
+
+// ================= 扩展模块 10:页面重组(成就页瘦身 + 系统配置页) =================
+// 我的成就:只保留统计与成就墙
+renderMe=function(){
+  const m=cnt(state,"mastered"),l=cnt(state,"learning"),lg=logTotal(state);
+  const unlocked=BADGES.filter(b=>state.badges[b.id]).length;
+  const st=(typeof calcStreak==="function")?calcStreak():{streak:0,total:0};
+  root.innerHTML=`
+  <div class="statgrid">
+    <div class="statbox g"><div class="v">${m}</div><div class="k">已掌握动作</div></div>
+    <div class="statbox b"><div class="v">${l}</div><div class="k">进行中</div></div>
+    <div class="statbox a"><div class="v">${lg}</div><div class="k">累计打卡</div></div>
+    <div class="statbox p"><div class="v">${unlocked}/${BADGES.length}</div><div class="k">解锁成就</div></div>
+    <div class="statbox"><div class="v" style="color:var(--rose)">${st.streak}<span class="vu">天</span></div><div class="k">连续训练</div></div>
+    <div class="statbox"><div class="v">${st.total}<span class="vu">天</span></div><div class="k">累计训练天数</div></div>
+  </div>
+  <div class="sectionlabel">成就墙</div>
+  <div class="badgegrid">${BADGES.map(b=>`
+    <div class="badge ${state.badges[b.id]?"unlocked":""}">
+      <div class="ic">${b.ic}</div><div class="nm">${b.nm}</div><div class="cond">${b.cond}</div>
+    </div>`).join("")}
+  </div>`;
+};
+
+// 系统配置页:账户信息 + 云同步 + AI 接口 + 外观 + 数据管理
+renderSettings=function(){
+  const kb=JSON.stringify(state).length/1024;
+  const upct=Math.min(100,kb/5120*100);
+  root.innerHTML=`
+  <div class="sectionlabel" style="margin-top:0">账户</div>
+  <div class="pathcard" style="padding:16px 18px">
+    ${cloudOn()?`
+      <div class="cfgrow"><b>注册用户</b><span style="color:var(--green)">${esc(cloud.user)}</span></div>
+      <div class="cfgrow"><b>注册时间</b><span>${cloud.created?new Date(cloud.created).toLocaleString("zh-CN",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}):"—(下次登录后记录)"}</span></div>
+      <div class="cfgrow"><b>会话有效至</b><span>${cloud.exp?new Date(cloud.exp).toLocaleDateString("zh-CN"):"—"}</span></div>`
+    :`<div class="pathdesc" style="margin:0 0 4px">未登录 · 本地模式</div>`}
+    <div id="mysync" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px"></div>
+  </div>
+
+  <div class="sectionlabel">AI 接口</div>
+  <div class="pathcard" style="padding:16px 18px">
+    <div class="pathdesc">支持任何 OpenAI 兼容接口(DashScope / DeepSeek / Moonshot…)。白板识别需要视觉模型。Key 仅保存在本机浏览器。</div>
+    <div class="logform">
+      <input class="wodinput" id="aibase" placeholder="API Base URL" value="${esc(state.ai.base)}">
+      <input class="wodinput" id="aikey" type="password" placeholder="API Key" value="${esc(state.ai.key)}">
+      <div style="display:flex;gap:10px">
+        <input class="wodinput" id="aitm" style="flex:1" placeholder="文本模型" value="${esc(state.ai.tmodel)}">
+        <input class="wodinput" id="aivm" style="flex:1" placeholder="视觉模型" value="${esc(state.ai.vmodel)}">
+      </div>
+      <button class="logsave" id="aisave">保存设置</button>
+    </div>
+    <div class="pathdesc" style="margin:10px 0 0;font-size:12px">状态:${aiReady()?'<span style="color:var(--green)">已配置 ✓</span>':'<span style="color:var(--amber)">未配置(官方WOD抓取和术语对照不受影响)</span>'}</div>
+  </div>
+
+  <div class="sectionlabel">外观</div>
+  <div class="pathcard" style="padding:16px 18px">
+    <div class="databtns" style="margin:0"><button class="themebtn"></button></div>
+  </div>
+
+  <div class="sectionlabel">数据管理</div>
+  <div class="pathcard" style="padding:16px 18px">
+    <div class="databtns" style="margin:0">
+      <button id="exportbtn">导出数据备份</button>
+      <button id="importbtn">导入数据</button>
+    </div>
+    <input type="file" id="importfile" accept=".json" style="display:none">
+    <div class="storagebar"><div class="srow"><span>本地存储用量</span><span class="mono">${kb<1024?kb.toFixed(0)+" KB":(kb/1024).toFixed(2)+" MB"} / 5 MB</span></div>
+      <div class="ovbar"><div class="ovfill" style="width:${upct}%;background:${upct>80?"var(--rose)":upct>50?"var(--amber)":"var(--green)"}"></div></div>
+      ${upct>80?'<div class="swarn">⚠ 接近上限,建议删除部分旧照片或导出备份后清理</div>':""}
+    </div>
+    ${storageOk?"":'<p style="color:var(--amber);font-size:12px;margin-top:12px">⚠ 当前环境不支持本地存储,数据仅在本次会话内有效。</p>'}
+  </div>`;
+
+  if(typeof renderSyncCard==="function")renderSyncCard();
+  applyTheme(lsGet(TKEY)||"dark"); // 刷新主题按钮文字
+  $("#aisave").onclick=()=>{
+    state.ai={base:$("#aibase").value.trim(),key:$("#aikey").value.trim(),
+      tmodel:$("#aitm").value.trim()||"qwen-plus",vmodel:$("#aivm").value.trim()||"qwen-vl-max"};
+    save();toast("✓ AI 设置已保存");renderSettings();
+  };
+  $("#exportbtn").onclick=()=>{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=`crossfit-log-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
+    toast("✓ 备份已导出");
+  };
+  $("#importbtn").onclick=()=>$("#importfile").click();
+  $("#importfile").onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{const p=JSON.parse(r.result);
+        state={...state,...p,status:p.status||{},logs:p.logs||{},badges:p.badges||{}};
+        save();render();toast("✓ 数据已导入");
+      }catch(err){toast("文件格式不正确,导入失败")}
+    };
+    r.readAsText(f);
+  };
+};
+// 已登录但无注册时间记录的老会话:以当前时间补记(下次登录会被服务端值覆盖)
+if(typeof cloud!=="undefined"&&cloud&&cloud.user&&!cloud.created){cloud.created=Date.now();try{lsSet(CKEY,JSON.stringify(cloud))}catch(e){}}
 render();
 </script>
 </body>
