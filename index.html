@@ -278,6 +278,38 @@ h1{font-size:34px;font-weight:900;letter-spacing:1px}
 .cfgrow b{color:var(--dim);font-weight:600;flex-shrink:0}
 .cfgrow span{font-family:var(--mono);font-size:13px}
 
+/* ===== 管理控制台 ===== */
+.adgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media(max-width:760px){.adgrid{grid-template-columns:1fr}}
+.adcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.adcard h4{font-size:14px;font-weight:800;margin:0 0 4px;display:flex;align-items:center;gap:7px}
+.adkpi{display:flex;gap:18px;margin:6px 0 14px;flex-wrap:wrap}
+.adkpi div{min-width:64px}
+.adkpi b{display:block;font-family:var(--mono);font-size:20px;color:var(--green);font-weight:700;line-height:1.1}
+.adkpi i{font-size:11px;color:var(--faint);font-style:normal}
+.invrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.invrow:last-child{border-bottom:none}
+.invcode{font-family:var(--mono);letter-spacing:1.5px;font-weight:700}
+.invmeta{font-size:11px;color:var(--faint);text-align:right;flex:1}
+.invdel{background:none;border:none;color:var(--faint);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;line-height:1;flex-shrink:0}
+.invdel:hover{color:var(--rose);background:var(--surface3)}
+.usearch{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:var(--sans);font-size:13px;padding:9px 12px;outline:none;margin-bottom:6px}
+.usearch:focus{border-color:var(--green-deep)}
+.urow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.urow:last-child{border-bottom:none}
+.uinfo{flex:1;min-width:130px}
+.uname{font-family:var(--mono);font-weight:700;font-size:14px}
+.utag{font-size:10px;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+.umeta{margin:2px 0 0;font-size:11px;color:var(--faint)}
+.uact{display:flex;gap:6px;flex-shrink:0}
+.uact button{padding:5px 11px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--surface2);color:var(--dim);cursor:pointer;font-family:var(--sans);white-space:nowrap}
+.uact button:hover{border-color:var(--dim);color:var(--text)}
+.uact button.danger:hover{border-color:var(--rose);color:var(--rose)}
+.upager{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--faint)}
+.upager button{background:var(--surface2);border:1px solid var(--line);color:var(--dim);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:var(--sans);font-size:12px}
+.upager button:disabled{opacity:.4;cursor:default}
+.hourbar rect{transition:opacity .15s}
+
 /* ====== 底部导航 ====== */
 .tabbar{
   position:fixed;bottom:0;left:0;right:0;z-index:40;
@@ -4186,131 +4218,188 @@ renderSettings=function(){
 if(typeof cloud!=="undefined"&&cloud&&cloud.user&&!cloud.created){cloud.created=Date.now();try{lsSet(CKEY,JSON.stringify(cloud))}catch(e){}}
 render();
 
-// ================= 扩展模块 11:管理员控制台 =================
-// 系统配置页追加管理区:邀请码生成 / 登录统计 / 用户管理
+// ================= 扩展模块 11:管理员控制台(重设计) =================
 const _rsAdmin=renderSettings;
 renderSettings=function(){
   _rsAdmin();
   if(!(cloudOn()&&cloud.role==="admin"))return;
-  root.insertAdjacentHTML("beforeend",`
-  <div class="sectionlabel">管理员 · 邀请码</div>
-  <div class="pathcard" style="padding:16px 18px">
-    <div class="pathdesc">每个邀请码仅可注册一名用户;固定邀请码(Cloudflare 变量 INVITE_CODE)继续有效。</div>
-    <div class="databtns" style="margin:10px 0 0"><button id="ad-geninvite" style="color:var(--green);border-color:var(--green-deep)">生成随机邀请码</button></div>
-    <div id="ad-invites" class="pathdesc" style="margin-top:10px">加载中…</div>
-  </div>
-  <div class="sectionlabel">管理员 · 登录统计</div>
-  <div class="pathcard" style="padding:16px 18px" id="ad-stats">加载中…</div>
-  <div class="sectionlabel">管理员 · 用户管理</div>
-  <div class="pathcard" style="padding:16px 18px" id="ad-users">加载中…</div>`);
 
-  const api=(p,opt={})=>fetch(cloud.server.replace(/\/$/,"")+p,
+  // 顶部:邀请码(左) + 用户管理(右),登录统计单独整行(信息密度高)
+  root.insertAdjacentHTML("beforeend",`
+  <div class="sectionlabel">管理控制台</div>
+  <div class="adgrid">
+    <div class="adcard">
+      <h4>🎟️ 邀请码</h4>
+      <div class="pathdesc" style="margin:0 0 10px">每个码仅可注册一人;固定码(INVITE_CODE)始终有效。</div>
+      <button class="logsave" id="ad-geninvite" style="margin:0 0 4px">生成随机邀请码</button>
+      <div id="ad-invites" style="margin-top:8px"><div class="pathdesc">加载中…</div></div>
+    </div>
+    <div class="adcard">
+      <h4>👥 用户管理 <span id="ad-ucount" class="pathdesc" style="margin:0;font-weight:400"></span></h4>
+      <input class="usearch" id="ad-usearch" placeholder="🔍 搜索用户名…">
+      <div id="ad-users"><div class="pathdesc">加载中…</div></div>
+      <div class="upager" id="ad-upager" style="display:none">
+        <button id="ad-uprev">← 上一页</button>
+        <span id="ad-upginfo"></span>
+        <button id="ad-unext">下一页 →</button>
+      </div>
+    </div>
+  </div>
+  <div class="adcard" style="margin-top:14px">
+    <h4>📊 登录统计</h4>
+    <div id="ad-stats"><div class="pathdesc">加载中…</div></div>
+  </div>`);
+
+  const base=cloud.server.replace(/\/$/,"");
+  const api=(p,opt={})=>fetch(base+p,
     Object.assign({headers:{Authorization:"Bearer "+cloud.token,"Content-Type":"application/json"}},opt))
     .then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"HTTP "+r.status);return d});
-
-  // ---- 邀请码 ----
   const fmtT=ts=>ts?new Date(ts).toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";
+  const fmtD=ts=>ts?new Date(ts).toLocaleDateString("zh-CN"):"—";
+
+  // ---------- 邀请码 ----------
   const loadInvites=async()=>{
     const el=document.getElementById("ad-invites");if(!el)return;
     try{
       const{invites}=await api("/admin/invites");
-      el.innerHTML=invites.length?invites.slice(0,12).map(i=>`
-        <div class="cfgrow"><b style="font-family:var(--mono);letter-spacing:1px;color:${i.usedBy?"var(--faint)":"var(--green)"}">${esc(i.code)}</b>
-        <span>${i.usedBy?`已用 · ${esc(i.usedBy)} ${fmtT(i.usedAt)}`:`未使用 · ${fmtT(i.created)} 生成`}</span></div>`).join("")
-      :"还没有生成过邀请码。";
-    }catch(e){el.textContent="⚠ "+e.message}
+      const unused=invites.filter(i=>!i.usedBy).length;
+      el.innerHTML=(invites.length?
+        `<div class="pathdesc" style="margin:0 0 6px">共 ${invites.length} 个 · ${unused} 个可用</div>`+
+        invites.slice(0,30).map(i=>`
+        <div class="invrow">
+          <span class="invcode" style="color:${i.usedBy?"var(--faint)":"var(--green)"}">${esc(i.code)}</span>
+          <span class="invmeta">${i.usedBy?`已用 · ${esc(i.usedBy)}`:`未使用 · ${fmtT(i.created)}`}</span>
+          <button class="invdel" data-delcode="${esc(i.code)}" title="删除">✕</button>
+        </div>`).join("")
+      :`<div class="pathdesc" style="margin:0">还没有生成过邀请码。</div>`);
+      el.querySelectorAll("[data-delcode]").forEach(b=>b.onclick=async()=>{
+        const code=b.dataset.delcode;
+        if(!confirm(`删除邀请码 ${code}?`+(/* 已用提示 */"") ))return;
+        try{await api("/admin/invite",{method:"DELETE",body:JSON.stringify({code})});toast("✓ 已删除");loadInvites();}
+        catch(e){toast("⚠ "+e.message)}
+      });
+    }catch(e){el.innerHTML='<div class="pathdesc">⚠ '+e.message+'</div>'}
   };
   document.getElementById("ad-geninvite").onclick=async()=>{
     const b=document.getElementById("ad-geninvite");b.disabled=true;b.textContent="生成中…";
-    try{
-      const{code}=await api("/admin/invite",{method:"POST",body:"{}"});
+    try{const{code}=await api("/admin/invite",{method:"POST",body:"{}"});
       try{await navigator.clipboard.writeText(code)}catch(e){}
-      toast("✓ 邀请码 "+code+" 已生成并复制");
-      loadInvites();
+      toast("✓ "+code+" 已生成并复制");loadInvites();
     }catch(e){toast("⚠ "+e.message)}
     b.disabled=false;b.textContent="生成随机邀请码";
   };
   loadInvites();
 
-  // ---- 登录统计 ----
+  // ---------- 用户管理(搜索 + 分页) ----------
+  let allUsers=[],uPage=0,uFilter="";const PAGE=8;
+  const renderUsers=()=>{
+    const el=document.getElementById("ad-users");if(!el)return;
+    const filtered=allUsers.filter(u=>u.user.toLowerCase().includes(uFilter.toLowerCase()));
+    const pages=Math.max(1,Math.ceil(filtered.length/PAGE));
+    if(uPage>=pages)uPage=pages-1;
+    const slice=filtered.slice(uPage*PAGE,uPage*PAGE+PAGE);
+    document.getElementById("ad-ucount").textContent=`· 共 ${allUsers.length} 人`;
+    el.innerHTML=slice.length?slice.map(u=>`
+      <div class="urow">
+        <div class="uinfo">
+          <span class="uname" style="color:${u.disabled?"var(--faint)":"var(--text)"}">${esc(u.user)}</span>
+          ${u.role==="admin"?'<span class="utag" style="color:var(--violet);border:1px solid var(--violet)">管理员</span>':""}
+          ${u.disabled?'<span class="utag" style="color:var(--rose);border:1px solid var(--rose)">已禁用</span>':""}
+          <div class="umeta">注册 ${fmtD(u.created)} · 最近登录 ${fmtT(u.lastLogin)} · 近30天 ${u.logins30d} 次</div>
+        </div>
+        ${u.role==="admin"?'<div class="uact"><span class="pathdesc" style="margin:0;font-size:11px">不可操作</span></div>':`
+        <div class="uact">
+          <button data-act="${u.disabled?"enable":"disable"}" data-u="${esc(u.user)}" class="${u.disabled?"":"danger"}">${u.disabled?"启用":"禁用"}</button>
+          <button data-act="setpass" data-u="${esc(u.user)}">改密</button>
+          <button data-act="delete" data-u="${esc(u.user)}" class="danger">删除</button>
+        </div>`}
+      </div>`).join(""):'<div class="pathdesc">没有匹配的用户。</div>';
+
+    const pager=document.getElementById("ad-upager");
+    if(filtered.length>PAGE){
+      pager.style.display="flex";
+      document.getElementById("ad-upginfo").textContent=`第 ${uPage+1} / ${pages} 页`;
+      document.getElementById("ad-uprev").disabled=uPage===0;
+      document.getElementById("ad-unext").disabled=uPage>=pages-1;
+    }else pager.style.display="none";
+
+    el.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>userAction(b.dataset.u,b.dataset.act));
+  };
+  const userAction=async(user,action)=>{
+    let pass;
+    if(action==="setpass"){pass=prompt(`为 ${user} 设置新密码(至少6位):`);if(!pass)return;if(pass.length<6){toast("⚠ 密码至少 6 位");return}}
+    if(action==="disable"&&!confirm(`禁用 ${user}?该用户将无法登录和同步,数据保留。`))return;
+    if(action==="delete"&&!confirm(`⚠ 永久删除 ${user}?\n该用户的账号和全部训练数据将被删除,无法恢复!`))return;
+    try{
+      await api("/admin/user",{method:"POST",body:JSON.stringify({user,action,pass})});
+      toast("✓ 已"+({setpass:"重置密码",disable:"禁用",enable:"启用",delete:"删除"}[action]));
+      loadUsersAdmin();
+    }catch(e){toast("⚠ "+e.message)}
+  };
+  const loadUsersAdmin=async()=>{
+    try{
+      const{users}=await api("/admin/users");
+      allUsers=users.sort((a,b)=>(b.created||0)-(a.created||0));
+      renderUsers();
+    }catch(e){const el=document.getElementById("ad-users");if(el)el.innerHTML='<div class="pathdesc">⚠ '+e.message+'</div>'}
+  };
+  document.getElementById("ad-usearch").oninput=e=>{uFilter=e.target.value;uPage=0;renderUsers()};
+  document.getElementById("ad-uprev").onclick=()=>{if(uPage>0){uPage--;renderUsers()}};
+  document.getElementById("ad-unext").onclick=()=>{uPage++;renderUsers()};
+  loadUsersAdmin();
+
+  // ---------- 登录统计(横向铺满) ----------
   (async()=>{
     const el=document.getElementById("ad-stats");if(!el)return;
     try{
       const{events}=await api("/admin/stats");
-      const dayKey=ts=>{const d=new Date(ts);return `${d.getMonth()+1}/${d.getDate()}`};
-      const days=[];// 最近14天
-      for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(dayKey(d.getTime()))}
-      const byDay={},uByDay={},byHour=new Array(24).fill(0);
-      events.forEach(e=>{
-        const k=dayKey(e.ts);
-        byDay[k]=(byDay[k]||0)+1;
-        (uByDay[k]=uByDay[k]||new Set()).add(e.u);
-        byHour[new Date(e.ts).getHours()]++;
-      });
-      const tk=dayKey(Date.now());
-      const maxD=Math.max(1,...days.map(k=>byDay[k]||0));
-      const maxH=Math.max(1,...byHour);
-      const W1=days.length*34,H1=120,W2=24*18,H2=96;
-      const bars1=days.map((k,i)=>{
-        const c=byDay[k]||0,u=uByDay[k]?uByDay[k].size:0;
-        const h=Math.round(c/maxD*84),hu=Math.round(u/maxD*84);
-        return `<g><rect x="${i*34+5}" y="${96-h}" width="24" height="${h}" rx="3" fill="var(--green)" opacity=".35"><title>${k} 登录 ${c} 人次</title></rect>
-        <rect x="${i*34+5}" y="${96-hu}" width="24" height="${hu}" rx="3" fill="var(--green)"><title>${k} 登录 ${u} 人</title></rect>
-        <text x="${i*34+17}" y="110" text-anchor="middle" font-size="9" fill="var(--faint)" font-family="var(--mono)">${k}</text></g>`;
-      }).join("");
-      const bars2=byHour.map((c,h)=>{
-        const hh=Math.round(c/maxH*64);
-        return `<g><rect x="${h*18+4}" y="${72-hh}" width="11" height="${hh||1}" rx="2" fill="${c?"var(--blue)":"var(--surface3)"}" ${c?"":'opacity=".6"'}><title>${h}:00–${h}:59 · ${c} 人次</title></rect>
-        ${h%4===0?`<text x="${h*18+9}" y="86" text-anchor="middle" font-size="9" fill="var(--faint)" font-family="var(--mono)">${h}</text>`:""}</g>`;
-      }).join("");
-      el.innerHTML=`
-        <div class="hmstats" style="justify-content:flex-start;gap:24px;margin-bottom:12px">
-          <div style="text-align:left"><b>${uByDay[tk]?uByDay[tk].size:0}</b><span>今日登录人数</span></div>
-          <div style="text-align:left"><b>${byDay[tk]||0}</b><span>今日登录人次</span></div>
-          <div style="text-align:left"><b>${events.length}</b><span>近30天总人次</span></div>
-        </div>
-        <div class="pathdesc" style="margin:0 0 4px">近 14 天(深色=人数,浅色=人次)</div>
-        <div style="overflow-x:auto"><svg width="${W1}" height="${H1}" viewBox="0 0 ${W1} ${H1}">${bars1}</svg></div>
-        <div class="pathdesc" style="margin:10px 0 4px">登录时段分布(0–23 点,近30天)</div>
-        <div style="overflow-x:auto"><svg width="${W2}" height="${H2}" viewBox="0 0 ${W2} ${H2}">${bars2}</svg></div>`;
-    }catch(e){el.textContent="⚠ "+e.message}
-  })();
+      const dk=ts=>{const d=new Date(ts);return `${d.getMonth()+1}/${d.getDate()}`};
+      const days=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(dk(d.getTime()))}
+      const byDay={},uByDay={},byHour=new Array(24).fill(0),activeUsers=new Set();
+      events.forEach(e=>{const k=dk(e.ts);byDay[k]=(byDay[k]||0)+1;(uByDay[k]=uByDay[k]||new Set()).add(e.u);byHour[new Date(e.ts).getHours()]++;activeUsers.add(e.u)});
+      const tk=dk(Date.now()),maxD=Math.max(1,...days.map(k=>byDay[k]||0)),maxH=Math.max(1,...byHour);
 
-  // ---- 用户管理 ----
-  const loadUsersAdmin=async()=>{
-    const el=document.getElementById("ad-users");if(!el)return;
-    try{
-      const{users}=await api("/admin/users");
-      el.innerHTML=users.sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap">
-          <div style="flex:1;min-width:140px">
-            <b style="font-family:var(--mono);color:${u.disabled?"var(--faint)":"var(--text)"}">${esc(u.user)}</b>
-            ${u.role==="admin"?'<span style="font-size:10px;color:var(--violet);border:1px solid var(--violet);border-radius:4px;padding:1px 5px;margin-left:6px">管理员</span>':""}
-            ${u.disabled?'<span style="font-size:10px;color:var(--rose);border:1px solid var(--rose);border-radius:4px;padding:1px 5px;margin-left:6px">已禁用</span>':""}
-            <div class="pathdesc" style="margin:2px 0 0;font-size:11px">注册 ${u.created?new Date(u.created).toLocaleDateString("zh-CN"):"—"} · 最近登录 ${fmtT(u.lastLogin)} · 近30天 ${u.logins30d} 次</div>
+      // 近30天日柱状图,铺满宽度(viewBox自适应)
+      const N=days.length, BW=100/N; // 百分比宽度
+      const dayBars=days.map((k,i)=>{
+        const c=byDay[k]||0,u=uByDay[k]?uByDay[k].size:0;
+        const h=c/maxD*78,hu=u/maxD*78,x=i*BW;
+        const showLbl=i%3===0||i===N-1;
+        return `<g>
+          <rect x="${x+BW*0.18}%" y="${88-h}%" width="${BW*0.64}%" height="${h}%" rx="1.5" fill="var(--green)" opacity=".3"><title>${k} ${c} 人次</title></rect>
+          <rect x="${x+BW*0.18}%" y="${88-hu}%" width="${BW*0.64}%" height="${hu}%" rx="1.5" fill="var(--green)"><title>${k} ${u} 人</title></rect>
+          ${showLbl?`<text x="${x+BW*0.5}%" y="98%" text-anchor="middle" font-size="8" fill="var(--faint)" font-family="var(--mono)">${k}</text>`:""}
+        </g>`;
+      }).join("");
+      // 24小时分布,铺满宽度
+      const HW=100/24;
+      const hourBars=byHour.map((c,h)=>{
+        const hh=c/maxH*82;
+        return `<g>
+          <rect x="${h*HW+HW*0.15}%" y="${88-hh}%" width="${HW*0.7}%" height="${hh||1}%" rx="1.5" fill="${c?"var(--blue)":"var(--surface3)"}" ${c?"":'opacity=".5"'}><title>${h}:00–${h}:59 · ${c} 人次</title></rect>
+          ${h%3===0?`<text x="${h*HW+HW*0.5}%" y="98%" text-anchor="middle" font-size="8" fill="var(--faint)" font-family="var(--mono)">${h}</text>`:""}
+        </g>`;
+      }).join("");
+
+      el.innerHTML=`
+        <div class="adkpi">
+          <div><b>${uByDay[tk]?uByDay[tk].size:0}</b><i>今日登录人数</i></div>
+          <div><b>${byDay[tk]||0}</b><i>今日登录人次</i></div>
+          <div><b>${activeUsers.size}</b><i>近30天活跃用户</i></div>
+          <div><b>${events.length}</b><i>近30天总人次</i></div>
+        </div>
+        <div class="adgrid">
+          <div>
+            <div class="pathdesc" style="margin:0 0 6px">近 30 天登录趋势 <span style="color:var(--green)">■</span>人数 <span style="color:var(--green);opacity:.4">■</span>人次</div>
+            <svg width="100%" height="150" preserveAspectRatio="none" style="display:block">${dayBars}</svg>
           </div>
-          ${u.role==="admin"?"":`
-          <button class="wodbtn ghostbtn" data-adact="${u.disabled?"enable":"disable"}" data-aduser="${esc(u.user)}" style="padding:6px 12px;font-size:12px;width:auto;${u.disabled?"":"color:var(--rose)"}">${u.disabled?"启用":"禁用"}</button>
-          <button class="wodbtn ghostbtn" data-adact="setpass" data-aduser="${esc(u.user)}" style="padding:6px 12px;font-size:12px;width:auto">重置密码</button>`}
-        </div>`).join("");
-      el.querySelectorAll("[data-adact]").forEach(b=>b.onclick=async()=>{
-        const user=b.dataset.aduser,action=b.dataset.adact;
-        let pass;
-        if(action==="setpass"){
-          pass=prompt(`为 ${user} 设置新密码(至少6位):`);
-          if(!pass)return;
-          if(pass.length<6){toast("⚠ 密码至少 6 位");return}
-        }
-        if(action==="disable"&&!confirm(`确定禁用 ${user}?该用户将无法登录和同步。`))return;
-        try{
-          await api("/admin/user",{method:"POST",body:JSON.stringify({user,action,pass})});
-          toast("✓ 已"+(action==="setpass"?"重置密码":action==="disable"?"禁用":"启用"));
-          loadUsersAdmin();
-        }catch(e){toast("⚠ "+e.message)}
-      });
-    }catch(e){el.textContent="⚠ "+e.message}
-  };
-  loadUsersAdmin();
+          <div>
+            <div class="pathdesc" style="margin:0 0 6px">登录时段分布 <span style="color:var(--blue)">■</span>(0–23 点)</div>
+            <svg width="100%" height="150" preserveAspectRatio="none" style="display:block" class="hourbar">${hourBars}</svg>
+          </div>
+        </div>`;
+    }catch(e){el.innerHTML='<div class="pathdesc">⚠ '+e.message+'</div>'}
+  })();
 };
 </script>
 </body>
