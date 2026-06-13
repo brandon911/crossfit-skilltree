@@ -216,6 +216,18 @@ h1{font-size:34px;font-weight:900;letter-spacing:1px}
   border-radius:var(--r-sm);padding:12px 0;cursor:pointer;font-family:var(--sans);transition:transform .1s;
 }
 .logsave:active{transform:scale(.98)}
+.geninvite{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
+  background:linear-gradient(135deg,#5BEDAE,#3BC98D);color:#06281A;
+  font-weight:800;font-size:14.5px;letter-spacing:.5px;
+  border:none;border-radius:12px;padding:13px 0;cursor:pointer;
+  font-family:var(--sans);box-shadow:0 4px 16px rgba(80,227,164,.28);
+  transition:transform .12s,box-shadow .2s,filter .2s;
+}
+.geninvite:hover{box-shadow:0 6px 22px rgba(80,227,164,.4);filter:brightness(1.04)}
+.geninvite:active{transform:translateY(1px) scale(.99)}
+.geninvite:disabled{opacity:.55;cursor:default;box-shadow:none;filter:none}
+.geninvite svg{width:17px;height:17px}
 .logitem{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:13px}
 .logitem .d{font-family:var(--mono);color:var(--faint);flex-shrink:0;font-size:12px;padding-top:1px}
 .logitem .t{color:#C3CBD6;line-height:1.6;flex:1}
@@ -4231,7 +4243,7 @@ renderSettings=function(){
     <div class="adcard">
       <h4>🎟️ 邀请码</h4>
       <div class="pathdesc" style="margin:0 0 10px">每个码仅可注册一人;固定码(INVITE_CODE)始终有效。</div>
-      <button class="logsave" id="ad-geninvite" style="margin:0 0 4px">生成随机邀请码</button>
+      <button class="geninvite" id="ad-geninvite" style="margin:0 0 4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span id="ad-geninvite-label">生成随机邀请码</span></button>
       <div id="ad-invites" style="margin-top:8px"><div class="pathdesc">加载中…</div></div>
     </div>
     <div class="adcard">
@@ -4281,12 +4293,12 @@ renderSettings=function(){
     }catch(e){el.innerHTML='<div class="pathdesc">⚠ '+e.message+'</div>'}
   };
   document.getElementById("ad-geninvite").onclick=async()=>{
-    const b=document.getElementById("ad-geninvite");b.disabled=true;b.textContent="生成中…";
+    const b=document.getElementById("ad-geninvite");const lbl=document.getElementById("ad-geninvite-label");b.disabled=true;lbl.textContent="生成中…";
     try{const{code}=await api("/admin/invite",{method:"POST",body:"{}"});
       try{await navigator.clipboard.writeText(code)}catch(e){}
       toast("✓ "+code+" 已生成并复制");loadInvites();
     }catch(e){toast("⚠ "+e.message)}
-    b.disabled=false;b.textContent="生成随机邀请码";
+    b.disabled=false;lbl.textContent="生成随机邀请码";
   };
   loadInvites();
 
